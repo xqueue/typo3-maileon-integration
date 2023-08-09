@@ -1,0 +1,6 @@
+{
+    "name": "xqueue/typo3-plugin",
+    "description": "Add double-opt-in newsletter subscription form connected with Maileon to your Typo3 sites",
+    "license": "MIT",
+    "require": {}
+}
