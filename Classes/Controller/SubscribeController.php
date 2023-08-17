@@ -1,6 +1,7 @@
 <?php
 namespace XQueue\Typo3MaileonIntegration\Controller;
 
+use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
 use XQueue\Typo3MaileonIntegration\Domain\Model\Subscription;
@@ -18,9 +19,9 @@ class SubscribeController extends ActionController
      * Subscribe action
      *
      * @param Subscription|null $data
-     * @return void
+     * @return ResponseInterface
      */
-    public function subscribeAction(?Subscription $data = null)
+    public function subscribeAction(?Subscription $data = null): ResponseInterface
     {
         if ($data != null) {
             // validate data
@@ -29,11 +30,13 @@ class SubscribeController extends ActionController
             if (false == $data->isApproval()) {
                 $isValid = false;
                 $this->view->assign("error_approval", true);
+                return $this->htmlResponse();
             }
 
             if (false == $data->isPrivacy()) {
                 $isValid = false;
                 $this->view->assign("error_privacy", true);
+                return $this->htmlResponse();
             }
 
             if (true == $isValid) {
@@ -85,7 +88,7 @@ class SubscribeController extends ActionController
                 if ($response->isSuccess()) {
                     // redirect to result page
                     if ($this->settings["targetSuccess"]) {
-                        $this->redirectByPid($this->settings["targetSuccess"]);
+                        return $this->redirectByPid($this->settings["targetSuccess"]);
                     }
                 } else {
                     if ($this->settings["debug"] == 1) {
@@ -94,15 +97,18 @@ class SubscribeController extends ActionController
                     } else {
                         // redirect to error page
                         if ($this->settings["targetError"]) {
-                            $this->redirectByPid($this->settings["targetError"]);
+                            return $this->redirectByPid($this->settings["targetError"]);
                         }
                     }
                 }
             } else {
                 // return to form and show error
                 $this->view->assign("data", $data);
+                return $this->htmlResponse();
             }
         }
+
+        return $this->htmlResponse();
     }
 
     /**
@@ -111,7 +117,7 @@ class SubscribeController extends ActionController
      * @param Subscription|null $data
      * @return void
      */
-    public function unsubscribeAction(?Subscription $data = null)
+    public function unsubscribeAction(?Subscription $data = null): ResponseInterface
     {
         if ($data != null) {
             // validate data
@@ -123,24 +129,26 @@ class SubscribeController extends ActionController
                 // redirect to result page
                 if ($response->isSuccess()) {
                     if ($this->settings["targetSuccess"]) {
-                        $this->redirectByPid($this->settings["targetSuccess"]);
+                        return $this->redirectByPid($this->settings["targetSuccess"]);
                     }
                 } else {
                     if ($this->settings["targetError"]) {
-                        $this->redirectByPid($this->settings["targetError"]);
+                        return $this->redirectByPid($this->settings["targetError"]);
                     }
                 }
             }
         }
+
+        return $this->htmlResponse();
     }
 
     /**
      * Redirect by page id
      *
      * @param integer $pid
-     * @return void
+     * @return ResponseInterface
      */
-    private function redirectByPid(int $pid)
+    private function redirectByPid(int $pid): ResponseInterface
     {
         $uriBuilder = $this->uriBuilder;
         $uriBuilder->reset();
@@ -148,8 +156,7 @@ class SubscribeController extends ActionController
         ->setTargetPageUid($pid)
         ->build();
 
-        $this->redirectToUri($uri);
-        exit;
+        return $this->redirectToUri($uri);
     }
 
     /**

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Imaging\IconRegistry;
 use TYPO3\CMS\Core\Imaging\IconProvider\BitmapIconProvider;
 use XQueue\Typo3MaileonIntegration\Controller\SubscribeController;
 
-defined('TYPO3_MODE') or die('Access denied.');
+defined('TYPO3') or die('Access denied.');
 
 ExtensionUtility::configurePlugin(
     'Typo3MaileonIntegration',

@@ -18,11 +18,11 @@ $EM_CONF[$_EXTKEY] = array (
     'author_email' => 'integrations@xqueue.com',
     'author_company' => 'XQueue GmbH',
     'state' => 'stable',
-    'version' => '3.0.1',
+    'version' => '3.1.0',
     'clearCacheOnLoad' => true,
     'constraints' => [
         'depends' => [
-            'typo3' => '10.4.0-11.5.99'
+            'typo3' => '11.5.0-12.4.99'
         ],
         'conflicts' => [],
         'suggests' => [],

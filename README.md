@@ -5,7 +5,8 @@ Typo3 - Maileon Integration Package
 Minimal Dependencies
 ====================
 
-* TYPO3 CMS 10.4 or 11.5 for Typo3 - Maileon Integration Package 3.x
+* TYPO3 CMS 11.5.0 or 12.4.99 for Typo3 - Maileon Integration Package 3.1.x
+* TYPO3 CMS 10.4 or 11.4.99 for Typo3 - Maileon Integration Package 3.x
 * TYPO3 CMS 9.5 or 10.4 for Typo3 - Maileon Integration Package 2.5.x
 * TYPO3 CMS 8.7 or 9.5 for Typo3 - Maileon Integration Package 2.4.x
 * TYPO3 CMS 7.6 for Typo3 - Maileon Integration Package 1.0.x
