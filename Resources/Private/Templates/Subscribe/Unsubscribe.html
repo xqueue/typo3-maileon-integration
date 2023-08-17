@@ -1,0 +1,16 @@
+<f:layout name="Default"/>
+
+<f:section name="main">
+
+    <f:flashMessages/>
+
+    <f:form method="post" controller="Subscribe" action="unsubscribe" name="data">
+      <div class="xqueue-formcontent">
+        <div class="xqueue-email">
+          <span><f:translate key="email.label" />:</span>
+          <f:form.textfield type="email" property="email" value="{data.email}" required="true"/>
+        </div>
+        <f:form.submit value="{f:translate(key: 'submit.label')}"/>
+      </div>
+    </f:form>
+</f:section>

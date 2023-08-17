@@ -1,0 +1,8 @@
+plugin.tx_typo3maileonintegration {
+    settings {
+        apiKey =
+        doiMailingKey =
+        debug = 0
+        targetPermission = 5
+    }
+}

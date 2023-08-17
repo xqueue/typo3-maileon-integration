@@ -1,0 +1,51 @@
+<f:layout name="Default"/>
+
+<f:section name="main">
+
+    <f:flashMessages/>
+
+    <f:form method="post" controller="Subscribe" action="subscribe" name="data">
+      <div class="xqueue-formcontent">
+        <div class="xqueue-salutation">
+          <span><f:translate key="salutation.label" />:</span>
+          <f:form.select property="salutation">
+            <f:form.select.option value="{f:translate(key: 'salutation.options.0')}"><f:translate key="salutation.options.0" /></f:form.select.option>
+            <f:form.select.option value="{f:translate(key: 'salutation.options.1')}"><f:translate key="salutation.options.1" /></f:form.select.option>
+          </f:form.select>
+        </div>
+        <div class="xqueue-firstname">
+          <span><f:translate key="firstname.label" />:</span>
+          <f:form.textfield property="firstname" value="{data.firstname}"/>
+        </div>
+        <div class="xqueue-lastname">
+          <span><f:translate key="lastname.label" />:</span>
+          <f:form.textfield property="lastname" value="{data.lastname}"/>
+        </div>
+        <div class="xqueue-organization">
+          <span><f:translate key="organization.label" />:</span>
+          <f:form.textfield property="organization" value="{data.organization}"/>
+        </div>
+        <div class="xqueue-position">
+          <span><f:translate key="position.label" />:</span>
+          <f:form.textfield property="position" value="{data.position}"/>
+        </div>
+        <div class="xqueue-subscriptionnumber">
+          <span><f:translate key="subscriptionnumber.label" />:</span>
+          <f:form.textfield property="subscriptionnumber" value="{data.subscriptionnumber}"/>
+        </div>
+        <div class="xqueue-email">
+          <span><f:translate key="email.label" />:</span>
+          <f:form.textfield type="email" property="email" value="{data.email}" required="true"/>
+        </div>
+        <div class="xqueue-approval {f:if(condition:'{error_approval}', then:'error')}">
+          <f:form.checkbox property="approval" value="1" checked="{data.approval} == 1" additionalAttributes="{required: 'true'}" />
+          <span><f:translate key="approval.label" /></span>
+        </div>
+        <div class="xqueue-privacy {f:if(condition:'{error_privacy}', then:'error')}">
+          <f:form.checkbox property="privacy"  value="1" checked="{data.privacy} == 1" additionalAttributes="{required: 'true'}" />
+          <span><f:translate key="privacy.label" /></span>
+        </div>
+        <f:form.submit value="{f:translate(key: 'submit.label')}"/>
+      </div>
+    </f:form>
+</f:section>

@@ -1,0 +1,8 @@
+plugin.tx_typo3maileonintegration {
+    settings {
+        apiKey = {$plugin.tx_typo3maileonintegration.settings.apiKey}
+        doiMailingKey = {$plugin.tx_typo3maileonintegration.settings.doiMailingKey}
+        debug = {$plugin.tx_typo3maileonintegration.settings.debug}
+        targetPermission = {$plugin.tx_typo3maileonintegration.settings.targetPermission}
+    }
+}

@@ -1,6 +1,33 @@
 {
-    "name": "xqueue/typo3-plugin",
-    "description": "Add double-opt-in newsletter subscription form connected with Maileon to your Typo3 sites",
-    "license": "MIT",
-    "require": {}
+	"name": "xqueue/typo3-maileon-integration",
+	"type": "typo3-cms-extension",
+	"description": "The Official TYPO3 Maileon integration Package",
+	"license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "XQueue GmbH",
+            "homepage": "https://xqueue.com",
+            "role": "Manufacturer"
+        }
+    ],
+	"require": {
+		"typo3/cms-core": "^10.4 || ^11.0",
+        "xqueue/maileon-api-client": "^1.8.0"
+	},
+	"extra": {
+		"typo3/cms": {
+			"extension-key": "typo3_maileon_integration"
+		}
+	},
+	"autoload": {
+		"psr-4": {
+			"XQueue\\Typo3MaileonIntegration\\": "Classes"
+		}
+	},
+	"config": {
+        "allow-plugins": {
+            "typo3/class-alias-loader": true,
+            "typo3/cms-composer-installers": true
+        }
+    }
 }
