@@ -10,7 +10,7 @@
  * writing. "version" and "dependencies" must not be touched!
  ***************************************************************/
 
-$EM_CONF[$_EXTKEY] = array (
+$EM_CONF[$_EXTKEY] = [
     'title' => 'Maileon newsletter subscription',
     'description' => 'Add double-opt-in newsletter subscription form connected with Maileon to your Typo3 sites',
     'category' => 'plugin',
@@ -18,11 +18,11 @@ $EM_CONF[$_EXTKEY] = array (
     'author_email' => 'integrations@xqueue.com',
     'author_company' => 'XQueue GmbH',
     'state' => 'stable',
-    'version' => '3.1.0',
+    'version' => '3.2.0',
     'clearCacheOnLoad' => true,
     'constraints' => [
         'depends' => [
-            'typo3' => '11.5.0-12.4.99'
+            'typo3' => '12.4.0-13.4.99'
         ],
         'conflicts' => [],
         'suggests' => [],
@@ -37,4 +37,4 @@ $EM_CONF[$_EXTKEY] = array (
             'de\\xqueue\\maileon\\api\\client\\' => 'Resources/Private/Contrib/xqueue/maileon-api-client/src'
          ]
      ],
-);
+];

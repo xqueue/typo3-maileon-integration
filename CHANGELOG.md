@@ -1,3 +1,9 @@
+# 3.2.0
+
+## 2024.11.27
+
+- Extension compatible with Typo3 v13 LTS
+
 # 3.1.0
 
 ## 2023.05.09
