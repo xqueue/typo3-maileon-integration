@@ -14,11 +14,11 @@
 * **TYPO3:** Install plugin
 * **TYPO3:** Include static template "Configuration for Typo 3 - Maileon integration (typo3_maileon_integration)" (typoscript)
 * **TYPO3:** Configure constants (see below)
-* **Maileon:** Configure the three pages (Einstellungen => Seitenverwaltung). Append "&ci=[CONTACT|ID]&cs=[CONTACT|CHECKSUM]" for activation and unsubscription
-* **Maileon:** Set the pages for DOI (Double Opt-In: Bestätigungsseite und Fehlerseite)
-* **Maileon:** Set the page for unsubscription (Grundeinstellungen: "Standard-Abmeldeseite")
-* **Maileon:** Create a DOI-Mailing (pages for DOI must exist) und activate it (Einstellungen => DOI-Mailing)
-* **Maileon:** Create API-Key with all permissions (Einstellungen => API-Keys)
+* **Maileon:** Configure the three pages (Settings => Page Management). Append "&ci=[CONTACT|ID]&cs=[CONTACT|CHECKSUM]" for activation and unsubscription
+* **Maileon:** Set the pages for DOI (Contact Management: Confirmation Page und Error Page)
+* **Maileon:** Set the page for unsubscription (Contact Management: Unsubscriber Management)
+* **Maileon:** Create a DOI-Mailing (pages for DOI must exist) und activate it (Mailing => DOI Mailings)
+* **Maileon:** Create API-Key with all permissions (Settings => API Keys)
 * **TYPO3:** Insert new "General Plugin" element and select "Subscription form" in "Plugin" tab
 * **TYPO3:** Optional: style form with css
 * **TYPO3:** Configure constants
@@ -33,10 +33,86 @@ plugin.tx_typo3maileonintegration {
 		doiMailingKey = AbCD1EFg
 		debug = 0
 		targetPermission = 5
+		privacyPolicyUrl =
+        subscribeForm {
+            standardFields {
+                salutation {
+                    active = 0
+                    required = 0
+                }
+                firstname {
+                    active = 0
+                    required = 0
+                }
+                lastname {
+                    active = 0
+                    required = 0
+                }
+                organization {
+                    active = 0
+                    required = 0
+                }
+                position {
+                    active = 0
+                    required = 0
+                }
+                subscriptionnumber {
+                    active = 0
+                    required = 0
+                }
+            }
+            customFields {
+                1 {
+                    name =
+                    label =
+                    inputType =
+                    dataType =
+                    value =
+                    active = 0
+                    required = 0
+                }
+                2 {
+                    name =
+                    label =
+                    inputType =
+                    dataType =
+                    value =
+                    active = 0
+                    required = 0
+                }
+                3 {
+                    name =
+                    label =
+                    inputType =
+                    dataType =
+                    value =
+                    active = 0
+                    required = 0
+                }
+                4 {
+                    name =
+                    label =
+                    inputType =
+                    dataType =
+                    value =
+                    active = 0
+                    required = 0
+                }
+                5 {
+                    name =
+                    label =
+                    inputType =
+                    dataType =
+                    value =
+                    active = 0
+                    required = 0
+                }
+            }
+        }
 	}
 }
 ```
 
 ## Documentation
 
-* [User Documentation](https://xqueue.atlassian.net/wiki/spaces/MSI/pages/2399174657/Typo3)
+* [User Documentation](https://xqueue.atlassian.net/wiki/spaces/MSI/pages/224201270/Typo3+v12+LTS)

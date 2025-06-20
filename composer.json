@@ -12,7 +12,7 @@
     ],
 	"require": {
 		"typo3/cms-core": "^12.4 || ^13.4",
-        "xqueue/maileon-api-client": "^1.8.0"
+        "xqueue/maileon-api-client": "^1.9.10"
 	},
 	"extra": {
 		"typo3/cms": {
@@ -29,5 +29,10 @@
             "typo3/class-alias-loader": true,
             "typo3/cms-composer-installers": true
         }
-    }
+    },
+	"scripts": {
+		"post-install-cmd": [
+			"@php vendor/bin/typo3 extension:setup"
+		]
+	}
 }

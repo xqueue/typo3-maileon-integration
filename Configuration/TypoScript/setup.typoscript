@@ -4,5 +4,81 @@ plugin.tx_typo3maileonintegration {
         doiMailingKey = {$plugin.tx_typo3maileonintegration.settings.doiMailingKey}
         debug = {$plugin.tx_typo3maileonintegration.settings.debug}
         targetPermission = {$plugin.tx_typo3maileonintegration.settings.targetPermission}
+        privacyPolicyUrl = {$plugin.tx_typo3maileonintegration.settings.privacyPolicyUrl}
+        subscribeForm {
+            standardFields {
+                salutation {
+                    active = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.salutation.active}
+                    required = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.salutation.required}
+                }
+                firstname {
+                    active = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.firstname.active}
+                    required = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.firstname.required}
+                }
+                lastname {
+                    active = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.lastname.active}
+                    required = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.lastname.required}
+                }
+                organization {
+                    active = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.organization.active}
+                    required = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.organization.required}
+                }
+                position {
+                    active = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.position.active}
+                    required = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.position.required}
+                }
+                subscriptionnumber {
+                    active = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.subscriptionnumber.active}
+                    required = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.standardFields.subscriptionnumber.required}
+                }
+            }
+            customFields {
+                1 {
+                    name = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.1.name}
+                    label = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.1.label}
+                    inputType = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.1.inputType}
+                    dataType = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.1.dataType}
+                    value = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.1.value}
+                    active = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.1.active}
+                    required = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.1.required}
+                }
+                2 {
+                    name = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.2.name}
+                    label = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.2.label}
+                    inputType = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.2.inputType}
+                    dataType = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.2.dataType}
+                    value = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.2.value}
+                    active = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.2.active}
+                    required = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.2.required}
+                }
+                3 {
+                    name = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.3.name}
+                    label = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.3.label}
+                    inputType = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.3.inputType}
+                    dataType = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.3.dataType}
+                    value = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.3.value}
+                    active = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.3.active}
+                    required = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.3.required}
+                }
+                4 {
+                    name = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.4.name}
+                    label = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.4.label}
+                    inputType = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.4.inputType}
+                    dataType = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.4.dataType}
+                    value = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.4.value}
+                    active = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.4.active}
+                    required = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.4.required}
+                }
+                5 {
+                    name = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.5.name}
+                    label = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.5.label}
+                    inputType = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.5.inputType}
+                    dataType = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.5.dataType}
+                    value = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.5.value}
+                    active = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.5.active}
+                    required = {$plugin.tx_typo3maileonintegration.settings.subscribeForm.customFields.5.required}
+                }
+            }
+        }
     }
 }

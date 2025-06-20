@@ -13,7 +13,7 @@ defined('TYPO3') or die('Access denied.');
 ExtensionUtility::configurePlugin(
     'Typo3MaileonIntegration',
     'Subscribe',
-    [SubscribeController::class => 'subscribe'],
+    [SubscribeController::class => 'show, subscribe'],
     [SubscribeController::class => 'subscribe']
 );
 

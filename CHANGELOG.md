@@ -1,3 +1,11 @@
+# 3.2.1
+
+## 2025.02.11
+
+- The subscription form can be customised
+- Custom fields can be added to the subscription form
+- Add XSIC Heartbeat functionality
+
 # 3.2.0
 
 ## 2024.11.27
