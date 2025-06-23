@@ -2,72 +2,58 @@
 
 namespace XQueue\Typo3MaileonIntegration\Domain\Repository;
 
-use Doctrine\DBAL\ParameterType;
-use TYPO3\CMS\Extbase\Persistence\Exception\InvalidQueryException;
+use TYPO3\CMS\Extbase\Persistence\Exception\IllegalObjectTypeException;
+use TYPO3\CMS\Extbase\Persistence\Exception\UnknownObjectException;
+use TYPO3\CMS\Extbase\Persistence\PersistenceManagerInterface;
 use TYPO3\CMS\Extbase\Persistence\Repository;
-use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
+use XQueue\Typo3MaileonIntegration\Domain\Model\XQHbSend;
 
 class XQHbSendRepository extends Repository
 {
-    protected string $tableName = 'tx_typo3maileonintegration_domain_model_xqhbsend';
-    public function findByTask(string $task)
-    {
-        $query = $this->createQuery();
+    protected PersistenceManagerInterface $persistenceManager;
 
-        return $query->matching($query->equals('task', $task))->execute()->getFirst();
+    public function injectPersistenceManager(PersistenceManagerInterface $persistenceManager): void
+    {
+        $this->persistenceManager = $persistenceManager;
+    }
+    public function findByTask(string $task): ?XqHbSend
+    {
+        return $this->findOneBy(['task' => $task]);
     }
 
     /**
-     * @throws InvalidQueryException
      */
     public function hasTaskRunToday(string $task): bool
     {
-        $startOfDay = strtotime('today midnight');
+        $record = $this->findByTask($task);
 
-        $query = $this->createQuery();
-        $query->matching(
-            $query->logicalAnd(
-                $query->equals('task', $task),
-                $query->greaterThanOrEqual('lastExecution', $startOfDay)
-            )
-        );
+        if (!$record) {
+            return false;
+        }
 
-        $result = $query->execute()->getFirst();
-
-        return $result !== null;
+        $today = (new \DateTime('today'))->getTimestamp();
+        return $record->getLastExecution() >= $today;
     }
 
+    /**
+     * @throws UnknownObjectException
+     * @throws IllegalObjectTypeException
+     */
     public function updateLastExecution(string $task): void
     {
-        $currentTimestamp = time();
-        $existingRecord = $this->findByTask($task);
+        $record = $this->findByTask($task);
 
-        // Get the database connection
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
-            ->getConnectionForTable($this->tableName)
-            ->createQueryBuilder();
+        if ($record === null) {
+            $record = new XqHbSend();
+            $record->setTask($task);
+            $record->setLastExecution(time());
 
-        if ($existingRecord) {
-            // Update existing record
-            $queryBuilder
-                ->update($this->tableName)
-                ->set('last_execution', $currentTimestamp)
-                ->where($queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter(
-                    $existingRecord->getUid(),
-                    ParameterType::INTEGER
-                )))
-                ->executeStatement();
+            $this->add($record);
         } else {
-            // Insert new record
-            $queryBuilder
-                ->insert($this->tableName)
-                ->values([
-                    'pid' => 0, // Set PID to 0 for frontend records
-                    'task' => $task,
-                    'last_execution' => $currentTimestamp,
-                ])
-                ->executeStatement();
+            $record->setTask($task);
+            $record->setLastExecution(time());
+
+            $this->update($record);
         }
     }
 }

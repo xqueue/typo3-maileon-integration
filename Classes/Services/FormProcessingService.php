@@ -2,123 +2,204 @@
 
 namespace XQueue\Typo3MaileonIntegration\Services;
 
+use DateTime;
+use DateTimeInterface;
 use de\xqueue\maileon\api\client\contacts\Contact;
 use de\xqueue\maileon\api\client\contacts\ContactsService;
 use de\xqueue\maileon\api\client\contacts\Permission;
 use de\xqueue\maileon\api\client\contacts\SynchronizationMode;
 use de\xqueue\maileon\api\client\MaileonAPIResult;
 use de\xqueue\maileon\api\client\utils\PingService;
+use Exception;
+use InvalidArgumentException;
+use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
+use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Persistence\Exception\IllegalObjectTypeException;
+use TYPO3\CMS\Extbase\Persistence\Exception\InvalidQueryException;
+use TYPO3\CMS\Extbase\Persistence\Exception\UnknownObjectException;
+use TYPO3\CMS\Form\Domain\Model\FormDefinition;
+use XQueue\Typo3MaileonIntegration\Domain\Repository\XQHbSendRepository;
+use XQueue\Typo3MaileonIntegration\Settings\Settings;
 
 class FormProcessingService
 {
-    protected array $settings;
+    protected array $maileonConfig = [];
+    protected XQHbSendRepository $xqHbSendRepository;
+    protected HeartBeatService $heartBeatService;
 
-    protected array $maileonConfig;
-
-    public function __construct(array $settings)
+    /**
+     * @throws ExtensionConfigurationPathDoesNotExistException
+     * @throws ExtensionConfigurationExtensionNotConfiguredException
+     * @throws Exception
+     */
+    public function __construct()
     {
-        $this->settings = $settings;
+        $extensionConfig = GeneralUtility::makeInstance(ExtensionConfiguration::class)
+            ->get(Settings::EXTENSION_KEY);
+
+        $apiKey = $extensionConfig['apiKey'] ?? null;
+
         $this->maileonConfig = [
             'BASE_URI' => 'https://api.maileon.com/1.0',
-            'API_KEY' => $this->settings['apiKey'],
+            'API_KEY' => $apiKey,
             'TIMEOUT' => 30,
         ];
+
+        if (empty($apiKey) || !$this->isMaileonApiKeyValid()) {
+            throw new Exception('Missing or invalid Maileon API key in extension configuration.');
+        }
+
+        $this->xqHbSendRepository = GeneralUtility::makeInstance(XQHbSendRepository::class);
+        $this->heartBeatService = new HeartBeatService($apiKey);
     }
 
     /**
-     * Validate form data
+     * @throws Exception
      */
-    public function validateData(array $data): array
+    public function processSubscribeForm(array $formData, FormDefinition $formDefinition, array $finisherSettings): void
     {
-        $errors = [];
+        [$email, $standardFields, $customFields] = $this->extractFormValues($formData, $formDefinition);
 
-        // Check API key
-        if (empty($this->settings['apiKey'])) {
-            $errors['apiKey'] = 'Maileon API key is required';
-            return $errors;
+        if ($email === null || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception('No valid email found in form field with Maileon field name "email".');
         }
 
-        if (! $this->isMaileonApiKeyValid()) {
-            $errors['apiKey'] = 'Maileon API is invalid';
-            return $errors;
+        $this->checkAndCreateCustomFields($customFields);
+
+        foreach ($customFields as $key => $value) {
+            $parts = explode('|', $value, 2);
+            $customFields[$key] = $parts[0] ?? null;
         }
 
-        // Required fields validation
-        $requiredFields = ['email'];
-        foreach ($requiredFields as $field) {
-            if (empty($data[$field])) {
-                $errors[$field] = ucfirst($field) . ' is required.';
-            }
-        }
+        $contact = $this->buildContact($email, $standardFields, $customFields);
+        $contact->permission = Permission::getPermission($finisherSettings['permission'] ?? 'none');
 
-        // Email validation
-        if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Invalid email format.';
-        }
-
-        if (! $data['approval']) {
-            $errors['approval'] = 'Privacy is required.';
-        }
-
-        if (! $data['privacy']) {
-            $errors['privacy'] = 'Privacy is required.';
-        }
-
-        return $errors;
+        $this->trySubscribeContact($contact, $finisherSettings);
     }
 
-    public function trySubscribeContact(array $data): MaileonAPIResult
+    /**
+     * @throws Exception
+     */
+    public function processUnsubscribeForm(array $formData, FormDefinition $formDefinition): void
     {
-        $contactsService = $this->getContactsService();
+        [$email] = $this->extractFormValues($formData, $formDefinition);
 
-        // Check if contact exists in Maileon
-        $getContactByEmail = $contactsService->getContactByEmail($data['email']);
+        if ($email === null || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new Exception('No valid email found in form field with Maileon field name "email".');
+        }
 
-        $newContact = $this->createNewContact($data);
+        $this->tryUnsubscribeContact($email);
+    }
 
-        if ($getContactByEmail->isSuccess()) {
-            $existingContact = $getContactByEmail->getResult();
+    protected function extractFormValues(array $formData, FormDefinition $formDefinition): array
+    {
+        $standardFields = [];
+        $customFields = [
+            "Typo3_created" => true,
+        ];
+        $email = null;
 
-            // Check permission of existing customer
-            if (Permission::$NONE == $existingContact->permission) {
-                // Contact does exist without permission - create with doi mailing
-                $response = $contactsService->createContact(
-                    $newContact,
-                    SynchronizationMode::$UPDATE,
-                    'Typo3',
-                    'subscriptionForm',
-                    true,
-                    ($this->settings["targetPermission"] == 5),
-                    $this->settings["doiMailingKey"]
-                );
-            } else {
-                // Contact does exist with permission - just update customer data
-                $response = $contactsService->createContact(
-                    $newContact,
-                    SynchronizationMode::$UPDATE,
-                    'Typo3',
-                    'subscriptionForm'
-                );
+        foreach ($formDefinition->getElements() ?? [] as $element) {
+            $identifier = $element->getIdentifier() ?? '';
+            $properties = $element->getProperties();
+            $maileonFieldName = $properties['maileonFieldName'] ?? null;
+            $type = $element->getType() ?? null;
+
+            if (!$maileonFieldName || !isset($formData[$identifier])) {
+                continue;
             }
-        } else {
-            // Contact does not exist - create with doi mailing
-            $response = $contactsService->createContact(
-                $newContact,
-                SynchronizationMode::$UPDATE,
-                'Typo3',
-                'subscriptionForm',
-                true,
-                ($this->settings["targetPermission"] == 5),
-                $this->settings["doiMailingKey"]
+
+            $value = $this->convertValueByType($type, $formData[$identifier]);
+            $lowerCaseName = strtolower($maileonFieldName);
+
+            if ($lowerCaseName === 'email') {
+                $email = $value;
+                continue;
+            }
+
+            if (in_array($lowerCaseName, Settings::STANDARD_FIELDS, true)) {
+                $standardFields[strtoupper($lowerCaseName)] = $value;
+            } else {
+                $customFields[$maileonFieldName] = $value . '|' . $this->resolveMaileonCustomFieldType($type);
+            }
+        }
+
+        return [$email, $standardFields, $customFields];
+    }
+
+    protected function validateStandardFields(array $standardFields): void
+    {
+        if (isset($standardFields['GENDER']) && !in_array(strtolower($standardFields['GENDER']), ['f', 'm', 'd'], true)) {
+            throw new InvalidArgumentException('Invalid value for gender. Allowed: f, m, d.');
+        }
+
+        if (isset($standardFields['LOCALE']) && !preg_match('/^[a-z]{2}$/i', $standardFields['LOCALE'])) {
+            throw new InvalidArgumentException(
+                'Invalid locale format. Expected a two-letter language code like "en", "de", or "hu".'
             );
         }
+    }
+
+    protected function convertValueByType(string $type, mixed $value): mixed
+    {
+        switch ($type) {
+            case 'Checkbox':
+                return (bool)$value;
+
+            case 'Date':
+                if ($value instanceof DateTimeInterface) {
+                    return $value->format('Y-m-d');
+                }
+                $date = DateTime::createFromFormat('Y-m-d', $value);
+                return $date ? $date->format('Y-m-d') : $value;
+
+            case 'Number':
+                return (int)$value;
+
+            default:
+                return mb_substr((string)$value, 0, 255);
+        }
+    }
+
+    /**
+     * @throws UnknownObjectException
+     * @throws IllegalObjectTypeException
+     * @throws InvalidQueryException
+     */
+    public function trySubscribeContact(Contact $contact, array $finisherSettings): MaileonAPIResult
+    {
+        $contactsService = $this->getContactsService();
+        $getContactByEmail = $contactsService->getContactByEmail($contact->email);
+
+        $withDoi = !$getContactByEmail->isSuccess() || Permission::$NONE === $getContactByEmail->getResult()->permission;
+
+        $response = $contactsService->createContact(
+            $contact,
+            SynchronizationMode::$UPDATE,
+            'Typo3',
+            'subscriptionForm',
+            $withDoi ? $finisherSettings['enableDoiProcess'] : null,
+            $withDoi ? $finisherSettings['enableDoiProcess'] : null,
+            $withDoi ? $finisherSettings['doiKey'] : null
+        );
+
+        $this->handleHB();
 
         return $response;
     }
 
+    /**
+     * @throws UnknownObjectException
+     * @throws IllegalObjectTypeException
+     * @throws InvalidQueryException
+     */
     public function tryUnsubscribeContact(string $email): MaileonAPIResult
     {
         $contactsService = $this->getContactsService();
+        $this->handleHB();
+
         return $contactsService->unsubscribeContactByEmail($email);
     }
 
@@ -127,10 +208,7 @@ class FormProcessingService
      */
     protected function getContactsService(): ContactsService
     {
-        $contactsService = new ContactsService($this->maileonConfig);
-        $contactsService->setDebug(false);
-
-        return $contactsService;
+        return new ContactsService($this->maileonConfig);
     }
 
     /**
@@ -138,99 +216,32 @@ class FormProcessingService
      */
     protected function getPingService(): PingService
     {
-        $pingService = new PingService($this->maileonConfig);
-        $pingService->setDebug(false);
-
-        return $pingService;
+        return new PingService($this->maileonConfig);
     }
 
     protected function isMaileonApiKeyValid(): bool
     {
         $pingService = $this->getPingService();
 
-        $responseGet = $pingService->pingGet();
-        $responsePost = $pingService->pingPost();
-        $responsePut = $pingService->pingPut();
-
-        if ($responseGet->getStatusCode() === 401) {
-            return false;
-        }
-
-        if (! $responseGet->isSuccess()) {
-            return false;
-        }
-
-        if (! $responsePost->isSuccess()) {
-            return false;
-        }
-
-        if (! $responsePut->isSuccess()) {
-            return false;
-        }
-
-        return true;
+        return $pingService->pingGet()->isSuccess()
+            && $pingService->pingPost()->isSuccess()
+            && $pingService->pingPut()->isSuccess();
     }
 
     /**
      * Create Contact obj
      */
-    protected function createNewContact(array $data): Contact
+    protected function buildContact(string $email, array $standardFields, array $customFields): Contact
     {
-        $newContact = new Contact();
-        $newContact->anonymous = false;
+        $contact = new Contact();
+        $contact->email = $email;
 
-        $newContact->email = $data['email'];
+        $this->validateStandardFields($standardFields);
+        $contact->standard_fields = $standardFields;
 
-        $matchingCustomFields = $this->getMatchingCustomFields($data);
+        $contact->custom_fields = $customFields;
 
-        // Standard and custom fields
-        $standardFields = $this->extractMaileonStandardFields($data);
-        $customFields = $this->extractMaileonCustomFields($matchingCustomFields, $data);
-
-        $this->checkAndCreateCustomFields($matchingCustomFields);
-
-        $newContact->standard_fields = $standardFields;
-        $newContact->custom_fields = $customFields;
-
-        return $newContact;
-    }
-
-    /**
-     * Get array for standard fields
-     */
-    protected function extractMaileonStandardFields(array $data): array
-    {
-        return [
-            "SALUTATION" => $this->getStringKeyValue($data, 'salutation'),
-            "FIRSTNAME" => $this->getStringKeyValue($data, 'firstname'),
-            "LASTNAME" => $this->getStringKeyValue($data, 'lastname'),
-            "ORGANIZATION" => $this->getStringKeyValue($data, 'organization'),
-        ];
-    }
-
-    /**
-     * Get array for custom fields
-     */
-    protected function extractMaileonCustomFields(array $matchingCustomFields, array $data): array
-    {
-        if (empty($matchingCustomFields)) {
-            return [];
-        }
-
-        $customFields = [
-            "Typo3_created" => true,
-        ];
-
-        foreach ($matchingCustomFields as $customField) {
-            if ($customField['dataType'] === 'boolean') {
-                $customFields[$customField['name']] = $this->getBooleanKeyValue($data, $customField['name']);
-                continue;
-            }
-
-            $customFields[$customField['name']] = $this->getStringKeyValue($data, $customField['name']);
-        }
-
-        return $customFields;
+        return $contact;
     }
 
     /**
@@ -239,51 +250,36 @@ class FormProcessingService
     protected function checkAndCreateCustomFields(array $customFields): void
     {
         $contactsService = $this->getContactsService();
+        $existingFields = $contactsService->getCustomFields()->getResult()->custom_fields;
 
-        $customFieldsResponse = $contactsService->getCustomFields();
-        $customFieldsFromMaileon = $customFieldsResponse->getResult();
-
-        if (!array_key_exists('Typo3_created', $customFieldsFromMaileon->custom_fields)) {
+        if (!array_key_exists('Typo3_created', $existingFields)) {
             $contactsService->createCustomField('Typo3_created', 'boolean');
         }
 
-        foreach ($customFields as $field) {
-            if (!array_key_exists($field['name'], $customFieldsFromMaileon->custom_fields)) {
-                $contactsService->createCustomField($field['name'], $field['dataType']);
+        foreach ($customFields as $fieldName => $fieldData) {
+            if (!array_key_exists($fieldName, $existingFields)) {
+                $parts = explode('|', $fieldData);
+                $contactsService->createCustomField($fieldName, $parts[1] ?? 'string');
             }
         }
     }
 
-    protected function getMatchingCustomFields(array $data): array
+    /**
+     * @throws UnknownObjectException
+     * @throws IllegalObjectTypeException
+     */
+    protected function handleHB(): void
     {
-        $matchingFields = [];
-        $customFieldsFromSettings = $this->settings['subscribeForm']['customFields'] ?? [];
+        $task = $this->xqHbSendRepository->findByTask('maileon_hb');
 
-        foreach ($customFieldsFromSettings as $field) {
-            if (!empty($field['name']) && isset($data[$field['name']])) {
-                if ($field['dataType'] === 'string' || $field['dataType'] === 'boolean') {
-                    $type = $field['dataType'];
-                } else {
-                    $type = 'string';
-                }
-
-                $matchingFields[] = [
-                    'name' => $field['name'],
-                    'dataType' => $type
-                ];
-            }
+        if (empty($task) || !$this->xqHbSendRepository->hasTaskRunToday('maileon_hb')) {
+            $this->heartBeatService->sendHeartbeat();
+            $this->xqHbSendRepository->updateLastExecution('maileon_hb');
         }
-
-        return $matchingFields;
     }
 
-    protected function getStringKeyValue(array $array, string $key): string
+    protected function resolveMaileonCustomFieldType(string $formFieldType): string
     {
-        return !empty($array[$key]) ? (string)$array[$key] : '';
-    }
-
-    protected function getBooleanKeyValue(array $array, string $key): bool
-    {
-        return !empty($array[$key]);
+        return Settings::MAILEON_FIELD_TYPE_MAP[$formFieldType] ?? 'string';
     }
 }

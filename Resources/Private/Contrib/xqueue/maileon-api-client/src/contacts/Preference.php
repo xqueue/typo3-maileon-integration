@@ -13,7 +13,7 @@ class Preference extends AbstractXMLWrapper
      * @var string $name
      */
     public $name;
-    
+
     /**
      * @var string $description
      */
@@ -82,7 +82,7 @@ class Preference extends AbstractXMLWrapper
         if (isset($xmlElement->name)) {
             $this->name = $xmlElement->name;
         }
-        
+
         if (isset($xmlElement->description)) {
             $this->description = $xmlElement->description;
         }
@@ -165,12 +165,12 @@ class Preference extends AbstractXMLWrapper
     public function toString()
     {
         return "Contact Preference [name=" . $this->name .
-        ", description=" . $this->description .
-        ", category=" . $this->category .
-        ", value=" . $this->value .
-        ", source=" . $this->source .
-        ", last_modified=" . $this->last_modified .
-        "]";
+            ", description=" . $this->description .
+            ", category=" . $this->category .
+            ", value=" . $this->value .
+            ", source=" . $this->source .
+            ", last_modified=" . $this->last_modified .
+            "]";
     }
 
     /**
@@ -182,10 +182,10 @@ class Preference extends AbstractXMLWrapper
     public function toCsvString()
     {
         return $this->name .
-        ";" . $this->description .
-        ";" . $this->category .
-        ";" . $this->value .
-        ";" . $this->source .
-        ";" . $this->last_modified;
+            ";" . $this->description .
+            ";" . $this->category .
+            ";" . $this->value .
+            ";" . $this->source .
+            ";" . $this->last_modified;
     }
 }

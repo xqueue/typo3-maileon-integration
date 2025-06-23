@@ -265,7 +265,7 @@ class ContactsService extends AbstractMaileonService
             'page_size' => $page_size,
             'standard_field' => $standard_fields
         );
-        
+
         if (!empty($updatedAfter)) {
             // Currently, let API handle validation
             $queryParameters['updated_after'] = urlencode($updatedAfter);
@@ -307,7 +307,7 @@ class ContactsService extends AbstractMaileonService
         $queryParameters = $this->appendArrayFields($queryParameters, 'custom_field', $custom_fields);
         $queryParameters = $this->appendArrayFields($queryParameters, 'preference_categories', $preference_categories);
 
-        return $this->get('contacts/email/' . utf8_encode($email), $queryParameters);
+        return $this->get('contacts/email/' . mb_convert_encoding($email, "UTF-8"), $queryParameters);
     }
 
     /**
@@ -340,7 +340,7 @@ class ContactsService extends AbstractMaileonService
         $queryParameters = $this->appendArrayFields($queryParameters, 'custom_field', $custom_fields);
         $queryParameters = $this->appendArrayFields($queryParameters, 'preference_categories', $preference_categories);
 
-        return $this->get('contacts/emails/' . utf8_encode($email), $queryParameters);
+        return $this->get('contacts/emails/' . mb_convert_encoding($email, "UTF-8"), $queryParameters);
     }
 
     /**
@@ -373,7 +373,7 @@ class ContactsService extends AbstractMaileonService
         $queryParameters = $this->appendArrayFields($queryParameters, 'custom_field', $custom_fields);
         $queryParameters = $this->appendArrayFields($queryParameters, 'preference_categories', $preference_categories);
 
-        return $this->get('contacts/externalid/' . utf8_encode($externalId), $queryParameters);
+        return $this->get('contacts/externalid/' . mb_convert_encoding($externalId, "UTF-8"), $queryParameters);
     }
 
     /**
@@ -414,7 +414,7 @@ class ContactsService extends AbstractMaileonService
         $queryParameters = $this->appendArrayFields($queryParameters, 'custom_field', $custom_fields);
         $queryParameters = $this->appendArrayFields($queryParameters, 'preference_categories', $preference_categories);
 
-        return $this->get('contacts/filter/' . utf8_encode($filterId), $queryParameters);
+        return $this->get('contacts/filter/' . mb_convert_encoding($filterId, "UTF-8"), $queryParameters);
     }
 
     /**
@@ -430,7 +430,7 @@ class ContactsService extends AbstractMaileonService
      */
     public function getCountContactsByFilterId($filterId)
     {
-        return $this->get('contacts/filter/' . utf8_encode($filterId) . '/count');
+        return $this->get('contacts/filter/' . mb_convert_encoding($filterId, "UTF-8") . '/count');
     }
 
     /**
@@ -446,7 +446,7 @@ class ContactsService extends AbstractMaileonService
      */
     public function getCountActiveContactsByFilterId($filterId)
     {
-        return $this->get('contacts/filter/' . utf8_encode($filterId) . '/count/active');
+        return $this->get('contacts/filter/' . mb_convert_encoding($filterId, "UTF-8") . '/count/active');
     }
 
     /**
@@ -495,10 +495,10 @@ class ContactsService extends AbstractMaileonService
             $queryParameters['permission'] = $contact->permission->getCode();
         }
         if (isset($src)) {
-            $queryParameters['src'] = $src;
+            $queryParameters['src'] = urlencode($src);
         }
         if (isset($subscriptionPage)) {
-            $queryParameters['page_key'] = $subscriptionPage;
+            $queryParameters['page_key'] = urlencode($subscriptionPage);
         }
         $doiMailingKey = trim((string) $doiMailingKey);
         if (!empty($doiMailingKey)) {
@@ -595,26 +595,26 @@ class ContactsService extends AbstractMaileonService
 
         return $this->post("contacts", $cleanedContacts->toXMLString(), $queryParameters);
     }
-    
-   /**
-    * This methods updates the data of a Maileon contact identifying a contact by its email
-    *
-    * @param string $email The (old) email address of the contact.
-    * @param Contact $contact
-    *  The contact object to send to Maileon. If it has a permission, it will be overwritten.
-    * @return MaileonAPIResult
-    *  the result object of the API call
-    * @throws MaileonAPIException
-    *  if there was a connection problem or a server error occurred
-    */
+
+    /**
+     * This methods updates the data of a Maileon contact identifying a contact by its email
+     *
+     * @param string $email The (old) email address of the contact.
+     * @param Contact $contact
+     *  The contact object to send to Maileon. If it has a permission, it will be overwritten.
+     * @return MaileonAPIResult
+     *  the result object of the API call
+     * @throws MaileonAPIException
+     *  if there was a connection problem or a server error occurred
+     */
     public function updateContactByEmail($email, $contact)
     {
         $queryParameters = array();
-            
+
         if (isset($contact->permission)) {
             $queryParameters['permission'] = $contact->permission->getCode();
         }
-        
+
         // The API allows only some of the fields to be submitted
         $contactToSend = new Contact(
             null,
@@ -628,8 +628,8 @@ class ContactsService extends AbstractMaileonService
             null,
             $contact->preferences
         );
-        
-        $encodedEmail = utf8_encode($email);
+
+        $encodedEmail = mb_convert_encoding($email, "UTF-8");
         return $this->put("contacts/email/{$encodedEmail}", $contactToSend->toXMLString(), $queryParameters);
     }
 
@@ -677,7 +677,7 @@ class ContactsService extends AbstractMaileonService
 
         $queryParameters = $this->appendArrayFields($queryParameters, "nlaccountid", $nlAccountIds);
 
-        $encodedEmail = utf8_encode($email);
+        $encodedEmail = mb_convert_encoding($email, "UTF-8");
         return $this->delete("contacts/email/{$encodedEmail}/unsubscribe", $queryParameters);
     }
 
@@ -760,7 +760,7 @@ class ContactsService extends AbstractMaileonService
 
         return $this->delete("contacts/contact/unsubscribe", $queryParameters);
     }
-    
+
     /**
      * This methods updates the data of a Maileon contact identifying a contact by its external ID
      *
@@ -775,11 +775,11 @@ class ContactsService extends AbstractMaileonService
     public function updateContactByExternalId($externalId, $contact)
     {
         $queryParameters = array();
-        
+
         if (isset($contact->permission)) {
             $queryParameters['permission'] = $contact->permission->getCode();
         }
-        
+
         // The API allows only some of the fields to be submitted
         $contactToSend = new Contact(
             null,
@@ -793,7 +793,7 @@ class ContactsService extends AbstractMaileonService
             null,
             $contact->preferences
         );
-        
+
         $encodedExternalId = urlencode($externalId);
         return $this->put("contacts/externalid/{$encodedExternalId}", $contactToSend->toXMLString(), $queryParameters);
     }
@@ -829,7 +829,7 @@ class ContactsService extends AbstractMaileonService
             }
         }
 
-        $encodedExternalId = utf8_encode($externalId);
+        $encodedExternalId = mb_convert_encoding($externalId, "UTF-8");
         return $this->delete("contacts/externalid/{$encodedExternalId}/unsubscribe", $queryParameters);
     }
 
@@ -850,7 +850,7 @@ class ContactsService extends AbstractMaileonService
         $queryParameters = array();
         $queryParameters = $this->appendArrayFields($queryParameters, "nlaccountid", $nlAccountIds);
 
-        $encodedExternalId = utf8_encode($externalId);
+        $encodedExternalId = mb_convert_encoding($externalId, "UTF-8");
         return $this->delete("contacts/externalid/{$encodedExternalId}/unsubscribe", $queryParameters);
     }
 
@@ -926,7 +926,7 @@ class ContactsService extends AbstractMaileonService
      */
     public function deleteContactByEmail($email)
     {
-        return $this->delete("contacts/email/" . utf8_encode($email));
+        return $this->delete("contacts/email/" . mb_convert_encoding($email, "UTF-8"));
     }
 
     /**
@@ -944,7 +944,7 @@ class ContactsService extends AbstractMaileonService
      */
     public function deleteContactsByExternalId($externalId)
     {
-        return $this->delete("contacts/externalid/" . utf8_encode($externalId));
+        return $this->delete("contacts/externalid/" . mb_convert_encoding($externalId, "UTF-8"));
     }
 
     /**
@@ -1066,7 +1066,7 @@ class ContactsService extends AbstractMaileonService
         $encodedName = rawurlencode(mb_convert_encoding($name, "UTF-8"));
         return $this->delete("contacts/fields/custom/{$encodedName}/values");
     }
-    
+
     /**
      * This method retrieves the list of contact preference categories.
      *

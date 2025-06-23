@@ -15,48 +15,47 @@ class HeartBeatService
 {
     use LoggerAwareTrait;
 
-    protected array $settings;
+    protected string $apiKey;
 
-    public function __construct(array $settings, LogManager $logManager)
+    public function __construct(string $apiKey)
     {
-        $this->settings = $settings;
+        if (empty($apiKey)) {
+            throw new Exception('API key is missing or invalid');
+        }
+
+        $this->apiKey = $apiKey;
+        $logManager = GeneralUtility::makeInstance(LogManager::class);
         $this->setLogger($logManager->getLogger(__CLASS__));
     }
 
-    public function executeHB(): void
+    public function sendHeartbeat(): void
     {
-        $requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
-
         try {
-            $accountParameters = $this->getAccountParameters();
-
-            if (empty($accountParameters)) {
+            $accountParams = $this->getAccountParameters();
+            if (empty($accountParams)) {
+                $this->logger->warning('Heartbeat skipped due to missing account parameters.');
                 return;
             }
 
-            $parameters = [
-                'pluginID' => Settings::XSIC_ID,
-                'checkSum' => Settings::XSIC_CHECKSUM,
-                'accountID' => $accountParameters['accountID'],
-                'clientHash' => $accountParameters['clientHash'],
-                'event' => 'heartbeat',
-            ];
+            $uri = Settings::XSIC_URL . '?' . http_build_query([
+                    'pluginID'   => Settings::XSIC_ID,
+                    'checkSum'   => Settings::XSIC_CHECKSUM,
+                    'accountID'  => $accountParams['accountID'],
+                    'clientHash' => $accountParams['clientHash'],
+                    'event'      => 'heartbeat',
+                ]);
 
-            $uri = Settings::XSIC_URL . '?' . http_build_query($parameters);
-
+            $requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
             $response = $requestFactory->request($uri, 'GET');
 
-            $responseData = json_decode($response->getBody()->getContents(), true);
-
-            if ($response->getStatusCode() === 200) {
-                return;
-            } else {
-                $this->logger->warning('HeartBeat process failed with error: ' . $response->getBody()->getContents());
-                return;
+            if ($response->getStatusCode() !== 200) {
+                $this->logger->warning('Heartbeat request failed.', [
+                    'status' => $response->getStatusCode(),
+                    'response' => $response->getBody()->getContents(),
+                ]);
             }
         } catch (Exception $e) {
-            $this->logger->error('HeartBeat process failed with error: ' . $e->getMessage());
-            return;
+            $this->logger->error('Heartbeat process failed.', ['exception' => $e]);
         }
     }
 
@@ -65,11 +64,11 @@ class HeartBeatService
      */
     protected function getAccountParameters(): array
     {
-        $accountInfo = $this->getAccountInfo();
+        $account = $this->getAccountInfo();
 
         return [
-            'accountID' => $accountInfo->id,
-            'clientHash' => $this->createClientHash($accountInfo->name),
+            'accountID'  => $account->id,
+            'clientHash' => $this->createClientHash($account->name),
         ];
     }
 
@@ -78,48 +77,32 @@ class HeartBeatService
      */
     protected function getAccountInfo(): stdClass
     {
-        $maileonConfig = [
+        $accountService = new AccountService([
             'BASE_URI' => 'https://api.maileon.com/1.0',
-            'API_KEY' => $this->getMaileonApiKey(),
-            'TIMEOUT' => 30,
-        ];
+            'API_KEY'  => $this->apiKey,
+            'TIMEOUT'  => 30,
+        ]);
 
-        $accountService = new AccountService($maileonConfig);
         $response = $accountService->getAccountInfo();
 
         if (! $response->isSuccess()) {
-            throw new Exception('Account info not found! (API key is missing or invalid)');
+            throw new Exception('Failed to retrieve Maileon account info.');
         }
 
         return $response->getResult();
     }
 
     /**
-     * Get Maileon Api key from plugin config
-     * Default Api key
-     *
      * @throws Exception
      */
-    protected function getMaileonApiKey(): string
-    {
-        $apiKey = $this->settings['apiKey'];
-
-        if (empty($apiKey)) {
-            throw new Exception('API key is missing or invalid');
-        }
-
-        return $apiKey;
-    }
-
     protected function createClientHash(string $accountName): string
     {
-        if (empty($accountName)) {
-            return '';
+        $accountName = trim($accountName);
+
+        if ($accountName === '') {
+            throw new Exception('Cannot create client hash: account name is empty.');
         }
 
-        $firstChar = substr($accountName, 0, 1);
-        $lastChar = substr($accountName, -1, 1);
-
-        return $firstChar . $lastChar;
+        return substr($accountName, 0, 1) . substr($accountName, -1, 1);
     }
 }

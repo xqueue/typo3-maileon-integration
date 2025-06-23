@@ -97,7 +97,7 @@ class Permission
                 return 'other';
         }
     }
-    
+
     /**
      * Get the permission object from the code
      *

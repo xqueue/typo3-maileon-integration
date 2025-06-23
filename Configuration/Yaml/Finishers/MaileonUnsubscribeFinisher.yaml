@@ -1,0 +1,11 @@
+prototypes:
+  standard:
+    finishersDefinition:
+      MaileonUnsubscribeFinisher:
+        implementationClassName: 'XQueue\Typo3MaileonIntegration\Domain\Finishers\MaileonUnsubscribeFinisher'
+        formEditor:
+          iconIdentifier: 'form-finisher'
+          label: 'Maileon Unsubscribe Finisher'
+        # displayed when overriding finisher settings
+        FormEngine:
+          label: 'Maileon Unsubscribe Finisher'

@@ -1,0 +1,20 @@
+prototypes:
+  standard:
+    formElementsDefinition:
+      Checkbox:
+        formEditor:
+          editors:
+            210:
+              identifier: 'labellink'
+              templateName: 'Inspector-Typo3WinBrowserEditor'
+              browsableType: 'pages'
+              iconIdentifier: 'mimetypes-x-content-text'
+              label: 'Label Link'
+              fieldExplanationText: 'Add link to the checkbox label'
+              buttonLabel: 'Link Page'
+              propertyPath: 'properties.link'
+            220:
+              identifier: 'maileonFieldName'
+              templateName: 'Inspector-TextEditor'
+              label: 'Maileon field name'
+              propertyPath: 'properties.maileonFieldName'

@@ -32,7 +32,7 @@ class Contacts extends AbstractXMLWrapper implements \IteratorAggregate
     {
         array_push($this->contacts, $contact);
     }
-    
+
     /**
      * @return \ArrayIterator
      * an iterator for the contacts in this list of contacts
@@ -41,7 +41,7 @@ class Contacts extends AbstractXMLWrapper implements \IteratorAggregate
     {
         return new \ArrayIterator($this->contacts);
     }
-    
+
     /**
      * @return int
      * The number of contacts

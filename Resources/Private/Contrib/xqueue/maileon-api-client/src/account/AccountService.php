@@ -13,6 +13,20 @@ use de\xqueue\maileon\api\client\MaileonAPIResult;
 class AccountService extends AbstractMaileonService
 {
     /**
+     * Get account information
+     *
+     * @return MaileonAPIResult
+     */
+    public function getAccountInfo()
+    {
+        return $this->get(
+            "account/info",
+            [],
+            "application/json"
+        );
+    }
+
+    /**
      * Get list of all account placeholders.
      *
      * @return MaileonAPIResult
@@ -85,7 +99,23 @@ class AccountService extends AbstractMaileonService
         return $this->delete("account/placeholders", $queryParameters);
     }
 
+    /**
+     * Get list of all subdomains
+     *
+     * @return MaileonAPIResult
+     */
+    public function getAccountMailingDomains()
+    {
+        return $this->get("account/mailing_domains", [], "application/xml");
+    }
 
+    /**
+     * Append a SimpleXMLElement to another
+     *
+     * @param \SimpleXMLElement $to
+     * @param \SimpleXMLElement $from
+     * @return void
+     */
     public function sxmlAppend(\SimpleXMLElement $to, \SimpleXMLElement $from)
     {
         $toDom = dom_import_simplexml($to);

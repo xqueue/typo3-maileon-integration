@@ -46,7 +46,7 @@ class PreferenceCategory extends AbstractXMLWrapper
         if (isset($xmlElement->name)) {
             $this->name = $xmlElement->name;
         }
-        
+
         if (isset($xmlElement->description)) {
             $this->description = $xmlElement->description;
         }
@@ -101,7 +101,7 @@ class PreferenceCategory extends AbstractXMLWrapper
     public function toString()
     {
         return "Contact Preference Category [name=" . $this->name .
-        ", description=" . $this->description . "]";
+            ", description=" . $this->description . "]";
     }
 
     /**
@@ -113,6 +113,6 @@ class PreferenceCategory extends AbstractXMLWrapper
     public function toCsvString()
     {
         return $this->name .
-        ";" . $this->description;
+            ";" . $this->description;
     }
 }

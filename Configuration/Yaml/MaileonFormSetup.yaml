@@ -1,0 +1,21 @@
+imports:
+    - { resource: './FormElements/Form.yaml' }
+    - { resource: './FormElements/Text.yaml' }
+    - { resource: './FormElements/Textarea.yaml' }
+    - { resource: './FormElements/Hidden.yaml' }
+    - { resource: './FormElements/Email.yaml' }
+    - { resource: './FormElements/Telephone.yaml' }
+    - { resource: './FormElements/Url.yaml' }
+    - { resource: './FormElements/Number.yaml' }
+    - { resource: './FormElements/Date.yaml' }
+    - { resource: './FormElements/Checkbox.yaml' }
+    - { resource: './FormElements/SingleSelect.yaml' }
+
+    - { resource: './Finishers/MaileonSubscribeFinisher.yaml' }
+    - { resource: './Finishers/MaileonUnsubscribeFinisher.yaml' }
+
+persistenceManager:
+    allowedExtensionPaths:
+        100: EXT:typo3_maileon_integration/Resources/Private/Forms/
+    allowedFileMounts:
+        100: 1:/typo3_maileon_integration/form/

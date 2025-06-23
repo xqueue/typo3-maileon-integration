@@ -44,7 +44,7 @@ class Contact extends AbstractXMLWrapper
      * @var string $created
      */
     public $created;
-    
+
     /**
      * @var string updated
      */
@@ -232,7 +232,7 @@ class Contact extends AbstractXMLWrapper
                 $preference_field = $preferences_field->addChild("preference");
                 $preference_field->addChild("name", $preference->name);
                 $preference_field->addChild("category", $preference->category);
-                
+
                 XMLUtils::addChildAsCDATA($preference_field, "value", $preference->value);
 
                 $preference_field->addChild("source", $preference->source);
@@ -294,11 +294,11 @@ class Contact extends AbstractXMLWrapper
         }
 
         return "Contact [id=" . $this->id . ", email="
-        . $this->email . ", permission=" . $permission . ", external_id=" . $this->external_id
-        . ", anonymous=" . (($this->anonymous == true) ? "true" : "false") .
-        ", created=" . $this->created . ", updated=" . $this->updated
-        . ", standard_fields={" . $standard_fields . "}, customfields={" . $customfields .
-        "}, preferences={" . $preferences . "}]";
+            . $this->email . ", permission=" . $permission . ", external_id=" . $this->external_id
+            . ", anonymous=" . (($this->anonymous == true) ? "true" : "false") .
+            ", created=" . $this->created . ", updated=" . $this->updated
+            . ", standard_fields={" . $standard_fields . "}, customfields={" . $customfields .
+            "}, preferences={" . $preferences . "}]";
     }
 
     /**
@@ -345,14 +345,14 @@ class Contact extends AbstractXMLWrapper
         }
 
         return $this->id
-        . ";" . $this->email
-        . ";" . $permission
-        . ";" . $this->external_id
-        . ";" . (($this->anonymous == true) ? "true" : "false")
-        . ";" . $this->created
-        . ";" . $this->updated
-        . ";\"" . $standard_fields . "\""
-        . ";\"" . $customfields . "\""
-        . ";\"" . $preferences . "\"";
+            . ";" . $this->email
+            . ";" . $permission
+            . ";" . $this->external_id
+            . ";" . (($this->anonymous == true) ? "true" : "false")
+            . ";" . $this->created
+            . ";" . $this->updated
+            . ";\"" . $standard_fields . "\""
+            . ";\"" . $customfields . "\""
+            . ";\"" . $preferences . "\"";
     }
 }

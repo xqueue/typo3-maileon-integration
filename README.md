@@ -1,118 +1,60 @@
 # Typo3 - Maileon Integration Package
 
+This extension provides seamless integration between TYPO3 Forms and [Maileon](https://www.maileon.com/), a powerful email marketing platform. It enables automatic contact synchronization from frontend forms, including support for custom fields, DOI processes, and subscription/unsubscription workflows.
+
+## Features
+
+- ✅ Integrates with TYPO3's `form` extension
+- ✅ Map form fields to Maileon standard or custom fields
+- ✅ Automatically create missing custom fields in Maileon
+- ✅ Handles Single Opt-In, Confirmed Opt-In, and Double Opt-In flows
+- ✅ Sends subscription and unsubscription requests via the Maileon API
+- ✅ Configurable via Extension Settings (Admin UI)
+- ✅ Supports Finisher presets in the form editor
+
+## Requirements
+
+- TYPO3 v12.4 or higher
+- PHP 8.1+
+- TYPO3 `form` system extension
+- A valid Maileon API key
+
 ## Minimal Dependencies
 
 * TYPO3 CMS 12.4.x or 13.4.x for Typo3 - Maileon Integration Package 3.2.x
 * TYPO3 CMS 11.5.0 or 12.4.99 for Typo3 - Maileon Integration Package 3.1.x
 * TYPO3 CMS 10.4 or 11.4.99 for Typo3 - Maileon Integration Package 3.x
-* TYPO3 CMS 9.5 or 10.4 for Typo3 - Maileon Integration Package 2.5.x
-* TYPO3 CMS 8.7 or 9.5 for Typo3 - Maileon Integration Package 2.4.x
-* TYPO3 CMS 7.6 for Typo3 - Maileon Integration Package 1.0.x
 
-## Workflow (settings in TYPO3 and Maileon are necessary)
+## Installation
 
-* **TYPO3:** Install plugin
-* **TYPO3:** Include static template "Configuration for Typo 3 - Maileon integration (typo3_maileon_integration)" (typoscript)
-* **TYPO3:** Configure constants (see below)
-* **Maileon:** Configure the three pages (Settings => Page Management). Append "&ci=[CONTACT|ID]&cs=[CONTACT|CHECKSUM]" for activation and unsubscription
-* **Maileon:** Set the pages for DOI (Contact Management: Confirmation Page und Error Page)
-* **Maileon:** Set the page for unsubscription (Contact Management: Unsubscriber Management)
-* **Maileon:** Create a DOI-Mailing (pages for DOI must exist) und activate it (Mailing => DOI Mailings)
-* **Maileon:** Create API-Key with all permissions (Settings => API Keys)
-* **TYPO3:** Insert new "General Plugin" element and select "Subscription form" in "Plugin" tab
-* **TYPO3:** Optional: style form with css
-* **TYPO3:** Configure constants
+Install via Composer:
 
-
-### Example constants configuration
-
+```bash
+composer require xqueue/typo3-maileon-integration
 ```
-plugin.tx_typo3maileonintegration {
-	settings {
-		apiKey = XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-		doiMailingKey = AbCD1EFg
-		debug = 0
-		targetPermission = 5
-		privacyPolicyUrl =
-        subscribeForm {
-            standardFields {
-                salutation {
-                    active = 0
-                    required = 0
-                }
-                firstname {
-                    active = 0
-                    required = 0
-                }
-                lastname {
-                    active = 0
-                    required = 0
-                }
-                organization {
-                    active = 0
-                    required = 0
-                }
-                position {
-                    active = 0
-                    required = 0
-                }
-                subscriptionnumber {
-                    active = 0
-                    required = 0
-                }
-            }
-            customFields {
-                1 {
-                    name =
-                    label =
-                    inputType =
-                    dataType =
-                    value =
-                    active = 0
-                    required = 0
-                }
-                2 {
-                    name =
-                    label =
-                    inputType =
-                    dataType =
-                    value =
-                    active = 0
-                    required = 0
-                }
-                3 {
-                    name =
-                    label =
-                    inputType =
-                    dataType =
-                    value =
-                    active = 0
-                    required = 0
-                }
-                4 {
-                    name =
-                    label =
-                    inputType =
-                    dataType =
-                    value =
-                    active = 0
-                    required = 0
-                }
-                5 {
-                    name =
-                    label =
-                    inputType =
-                    dataType =
-                    value =
-                    active = 0
-                    required = 0
-                }
-            }
-        }
-	}
-}
-```
+Activate the extension in the TYPO3 Extension Manager.
+
+## Configuration
+
+1. Go to **Admin Tools → Settings → Extension Configuration**.
+2. Locate **TYPO3 Maileon Integration** and set:
+    - Your **Maileon API Key**
+
+## Usage
+
+1. Create a form using the **TYPO3 Form Editor**.
+2. Add fields and set the `maileonFieldName` in each field’s.
+3. Add the **Maileon Finisher** at the end of the form.
+4. Configure the finisher options (e.g., permission, DOI settings).
+5. Save and include the form on any page.
+
+## Standard vs Custom Fields
+
+The extension automatically categorizes fields based on the `maileonFieldName`:
+
+- **Standard fields**: `firstname`, `lastname`, `locale`, etc.
+- **Custom fields**: Any field not in the standard list will be created in Maileon if it doesn’t exist.
 
 ## Documentation
 
-* [User Documentation](https://xqueue.atlassian.net/wiki/spaces/MSI/pages/224201270/Typo3+v12+LTS)
+* [User Documentation](https://xqueue.atlassian.net/wiki/spaces/MSI/pages/482672647/Typo3+Form+version+v4.0)

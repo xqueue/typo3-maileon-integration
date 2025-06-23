@@ -65,7 +65,7 @@ class AccountPlaceholder extends AbstractXMLWrapper
 
         return $xml;
     }
-    
+
     /**
      * Human readable representation of this wrapper.
      *
@@ -75,6 +75,6 @@ class AccountPlaceholder extends AbstractXMLWrapper
     public function toString()
     {
         return "AccountPlaceholder [key=" . $this->key . ", "
-                . "value=" . $this->value . "]";
+            . "value=" . $this->value . "]";
     }
 }

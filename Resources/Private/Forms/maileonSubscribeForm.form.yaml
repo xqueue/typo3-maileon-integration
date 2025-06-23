@@ -1,0 +1,61 @@
+
+renderingOptions:
+  submitButtonLabel: Subscribe
+type: Form
+identifier: maileonSubscribeForm
+label: 'Maileon Subscribe Form'
+prototypeName: standard
+finishers:
+  -
+    options:
+      permission: none
+      enableDoiProcess: true
+      doiKey: ''
+    identifier: MaileonSubscribeFinisher
+  -
+    options:
+      message: 'Subscription was successful!'
+      contentElementUid: ''
+    identifier: Confirmation
+renderables:
+  -
+    renderingOptions:
+      previousButtonLabel: 'Previous step'
+      nextButtonLabel: 'Next step'
+    type: Page
+    identifier: page-1
+    label: Subscribe
+    renderables:
+      -
+        defaultValue: ''
+        validators:
+          -
+            identifier: EmailAddress
+          -
+            identifier: NotEmpty
+        type: Email
+        identifier: email-1
+        label: 'Email address'
+        properties:
+          maileonFieldName: email
+          fluidAdditionalAttributes:
+            required: required
+      -
+        defaultValue: ''
+        type: Text
+        identifier: text-1
+        label: Name
+        properties:
+          maileonFieldName: fullname
+      -
+        type: Checkbox
+        identifier: checkbox-1
+        label: 'I accept the [Privacy Policy].'
+        properties:
+          link: '75'
+          maileonFieldName: typo3_accepted
+          fluidAdditionalAttributes:
+            required: required
+        validators:
+          -
+            identifier: NotEmpty

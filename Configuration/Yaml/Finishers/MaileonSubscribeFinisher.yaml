@@ -1,0 +1,35 @@
+prototypes:
+  standard:
+    finishersDefinition:
+      MaileonSubscribeFinisher:
+        implementationClassName: 'XQueue\Typo3MaileonIntegration\Domain\Finishers\MaileonSubscribeFinisher'
+        formEditor:
+          iconIdentifier: 'form-finisher'
+          label: 'Maileon Subscribe Finisher'
+          predefinedDefaults:
+            options:
+              permission: 'none'
+              enableDoiProcess: 'false'
+              doiKey: ''
+        # displayed when overriding finisher settings
+        FormEngine:
+          label: 'Maileon Subscribe Finisher'
+          elements:
+            permission:
+              label: 'Initial Permission'
+              config:
+                type: 'select'
+                items:
+                  - [ 'None', 'none' ]
+                  - [ 'Single Opt-in', 'soi' ]
+                  - [ 'Confirmed Opt-in', 'coi' ]
+                  - [ 'Double Opt-in', 'doi' ]
+                  - [ 'Double Opt-in Plus', 'doi+' ]
+            enableDoiProcess:
+              label: 'Enable Double Opt-in (DOI) process?'
+              config:
+                type: 'check'
+            doiKey:
+              label: 'Double Opt-in (DOI) Key'
+              config:
+                type: 'text'

@@ -1,0 +1,81 @@
+prototypes:
+  standard:
+    formElementsDefinition:
+      Form:
+        formEditor:
+          editors:
+            900:
+              # Extend finisher drop down
+              selectOptions:
+                35:
+                  value: 'MaileonSubscribeFinisher'
+                  label: 'Maileon Subscribe Finisher'
+                40:
+                  value: 'MaileonUnsubscribeFinisher'
+                  label: 'Maileon Unsubscribe Finisher'
+          propertyCollections:
+            finishers:
+              # add finisher fields
+              25:
+                identifier: 'MaileonSubscribeFinisher'
+                editors:
+                  100:
+                    identifier: header
+                    templateName: Inspector-CollectionElementHeaderEditor
+                    label: "Maileon Subscribe Finisher"
+                  # permission field
+                  110:
+                    identifier: 'permission'
+                    templateName: 'Inspector-SingleSelectEditor'
+                    label: 'Initial Permission'
+                    propertyPath: 'options.permission'
+                    selectOptions:
+                      10:
+                        label: 'None'
+                        value: 'none'
+                      20:
+                        label: 'Single Opt-in'
+                        value: 'soi'
+                      30:
+                        label: 'Confirmed Opt-in'
+                        value: 'coi'
+                      40:
+                        label: 'Double Opt-in'
+                        value: 'doi'
+                      50:
+                        label: 'Double Opt-in Plus'
+                        value: 'doi+'
+                    propertyValidators:
+                      10: 'NotEmpty'
+                  # doi process field
+                  120:
+                    identifier: 'enableDoiProcess'
+                    templateName: 'Inspector-CheckboxEditor'
+                    label: 'Enable Double Opt-in (DOI) process?'
+                    propertyPath: 'options.enableDoiProcess'
+                  # doi key field
+                  130:
+                    identifier: 'doiKey'
+                    templateName: 'Inspector-TextEditor'
+                    label: 'Double Opt-in (DOI) Key'
+                    propertyPath: 'options.doiKey'
+                  9999:
+                    identifier: removeButton
+                    templateName: Inspector-RemoveElementEditor
+              30:
+                identifier: 'MaileonUnsubscribeFinisher'
+                editors:
+                  100:
+                    identifier: header
+                    templateName: Inspector-CollectionElementHeaderEditor
+                    label: "Maileon Unsubscribe Finisher"
+                  9999:
+                    identifier: removeButton
+                    templateName: Inspector-RemoveElementEditor
+        renderingOptions:
+          layoutRootPaths:
+            110: 'EXT:typo3_maileon_integration/Resources/Private/Frontend/Layouts/'
+          templateRootPaths:
+            110: 'EXT:typo3_maileon_integration/Resources/Private/Frontend/Templates/'
+          partialRootPaths:
+            110: 'EXT:typo3_maileon_integration/Resources/Private/Frontend/Partials/'

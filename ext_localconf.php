@@ -2,26 +2,21 @@
 
 declare(strict_types=1);
 
-use TYPO3\CMS\Extbase\Utility\ExtensionUtility;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Imaging\IconRegistry;
 use TYPO3\CMS\Core\Imaging\IconProvider\BitmapIconProvider;
-use XQueue\Typo3MaileonIntegration\Controller\SubscribeController;
 
 defined('TYPO3') or die('Access denied.');
 
-ExtensionUtility::configurePlugin(
-    'Typo3MaileonIntegration',
-    'Subscribe',
-    [SubscribeController::class => 'show, subscribe'],
-    [SubscribeController::class => 'subscribe']
-);
-
-ExtensionUtility::configurePlugin(
-    'Typo3MaileonIntegration',
-    'Unsubscribe',
-    [SubscribeController::class => 'unsubscribe'],
-    [SubscribeController::class => 'unsubscribe']
+ExtensionManagementUtility::addTypoScriptSetup(
+'module.tx_form {
+        settings {
+            yamlConfigurations {
+                1749823796 = EXT:typo3_maileon_integration/Configuration/Yaml/MaileonFormSetup.yaml
+            }
+        }
+    }'
 );
 
 $iconRegistry = GeneralUtility::makeInstance(

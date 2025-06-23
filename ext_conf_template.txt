@@ -1,0 +1,2 @@
+# cat=Maileon; type=string; label=Maileon API key
+apiKey =

@@ -1,0 +1,11 @@
+prototypes:
+  standard:
+    formElementsDefinition:
+      Number:
+        formEditor:
+          editors:
+            210:
+              identifier: 'maileonFieldName'
+              templateName: 'Inspector-TextEditor'
+              label: 'Maileon field name'
+              propertyPath: 'properties.maileonFieldName'
