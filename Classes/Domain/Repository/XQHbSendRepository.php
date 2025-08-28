@@ -10,8 +10,6 @@ use XQueue\Typo3MaileonIntegration\Domain\Model\XQHbSend;
 
 class XQHbSendRepository extends Repository
 {
-    protected PersistenceManagerInterface $persistenceManager;
-
     public function injectPersistenceManager(PersistenceManagerInterface $persistenceManager): void
     {
         $this->persistenceManager = $persistenceManager;

@@ -1,3 +1,7 @@
+# 4.0.1
+## 2025.08.28
+- Fixed error in XQHbSendRepository related to persistenceManager property.
+
 # 4.0.0
 ## 2025.06.19
 
