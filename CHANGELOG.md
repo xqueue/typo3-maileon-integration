@@ -1,3 +1,7 @@
+# 4.1.0
+## 2025.12.19
+- Added functionality, it can be set what the final permission should be in the case of a DOI process.
+
 # 4.0.1
 ## 2025.08.28
 - Fixed error in XQHbSendRepository related to persistenceManager property.

@@ -10,6 +10,7 @@ prototypes:
             options:
               permission: 'none'
               enableDoiProcess: 'false'
+              finalPermission: 'doi+'
               doiKey: ''
         # displayed when overriding finisher settings
         FormEngine:
@@ -29,6 +30,13 @@ prototypes:
               label: 'Enable Double Opt-in (DOI) process?'
               config:
                 type: 'check'
+            finalPermission:
+              label: 'Final permission after DOI process'
+              config:
+                type: 'select'
+                items:
+                  - [ 'Double Opt-in', 'doi' ]
+                  - [ 'Double Opt-in Plus', 'doi+' ]
             doiKey:
               label: 'Double Opt-in (DOI) Key'
               config:

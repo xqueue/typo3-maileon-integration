@@ -35,6 +35,7 @@ class MaileonSubscribeFinisher extends AbstractFinisher
         return [
             'permission' => $options['permission'] ?? 'none',
             'enableDoiProcess' => filter_var($options['enableDoiProcess'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            'finalPermission' => $options['finalPermission'] ?? 'doi+',
             'doiKey' => $options['doiKey'] ?? '',
         ];
     }

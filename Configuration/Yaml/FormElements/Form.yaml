@@ -53,8 +53,23 @@ prototypes:
                     templateName: 'Inspector-CheckboxEditor'
                     label: 'Enable Double Opt-in (DOI) process?'
                     propertyPath: 'options.enableDoiProcess'
-                  # doi key field
+                  # final permission field
                   130:
+                    identifier: 'finalPermission'
+                    templateName: 'Inspector-SingleSelectEditor'
+                    label: 'Final permission after DOI process'
+                    propertyPath: 'options.finalPermission'
+                    selectOptions:
+                      10:
+                        label: 'Double Opt-in'
+                        value: 'doi'
+                      20:
+                        label: 'Double Opt-in Plus'
+                        value: 'doi+'
+                    propertyValidators:
+                      10: 'NotEmpty'
+                  # doi key field
+                  140:
                     identifier: 'doiKey'
                     templateName: 'Inspector-TextEditor'
                     label: 'Double Opt-in (DOI) Key'

@@ -10,6 +10,7 @@ finishers:
     options:
       permission: none
       enableDoiProcess: true
+      finalPermission: doi+
       doiKey: ''
     identifier: MaileonSubscribeFinisher
   -

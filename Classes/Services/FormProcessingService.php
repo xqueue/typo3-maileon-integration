@@ -174,6 +174,11 @@ class FormProcessingService
         $getContactByEmail = $contactsService->getContactByEmail($contact->email);
 
         $withDoi = !$getContactByEmail->isSuccess() || Permission::$NONE === $getContactByEmail->getResult()->permission;
+        $needDoiPlus = false;
+
+        if ($finisherSettings['finalPermission'] === 'doi+') {
+            $needDoiPlus = true;
+        }
 
         $response = $contactsService->createContact(
             $contact,
@@ -181,7 +186,7 @@ class FormProcessingService
             'Typo3',
             'subscriptionForm',
             $withDoi ? $finisherSettings['enableDoiProcess'] : null,
-            $withDoi ? $finisherSettings['enableDoiProcess'] : null,
+            $withDoi ? $needDoiPlus : null,
             $withDoi ? $finisherSettings['doiKey'] : null
         );
 
