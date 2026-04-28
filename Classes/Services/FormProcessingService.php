@@ -71,49 +71,57 @@ class FormProcessingService
     {
         $contactsService = $this->getContactsService();
 
-        // Check if contact exists in Maileon
-        $getContactByEmail = $contactsService->getContactByEmail($data['email']);
+        $forceDoi = ($this->settings['forceDoiOnExistingContact'] ?? '0') === '1';
+        $targetPermission = (int)($this->settings['targetPermission'] ?? 0);
+        $targetPermissionIsDoiPlus = $targetPermission === Permission::$DOI_PLUS->code;
 
+        $doiMailingKey = $this->settings['doiMailingKey'] ?? '';
+
+        $existingContactResponse = $contactsService->getContactByEmail($data['email']);
         $newContact = $this->createNewContact($data);
 
-        if ($getContactByEmail->isSuccess()) {
-            $existingContact = $getContactByEmail->getResult();
-
-            // Check permission of existing customer
-            if (Permission::$NONE == $existingContact->permission) {
-                // Contact does exist without permission - create with doi mailing
-                $response = $contactsService->createContact(
-                    $newContact,
-                    SynchronizationMode::$UPDATE,
-                    'Typo3',
-                    'subscriptionForm',
-                    true,
-                    ($this->settings["targetPermission"] == 5),
-                    $this->settings["doiMailingKey"]
-                );
-            } else {
-                // Contact does exist with permission - just update customer data
-                $response = $contactsService->createContact(
-                    $newContact,
-                    SynchronizationMode::$UPDATE,
-                    'Typo3',
-                    'subscriptionForm'
-                );
-            }
-        } else {
-            // Contact does not exist - create with doi mailing
-            $response = $contactsService->createContact(
+        // CASE 1: Contact does NOT exist
+        if (!$existingContactResponse->isSuccess()) {
+            return $this->createContactWithOptionalDoiPlus(
+                $contactsService,
                 $newContact,
-                SynchronizationMode::$UPDATE,
-                'Typo3',
-                'subscriptionForm',
-                true,
-                ($this->settings["targetPermission"] == 5),
-                $this->settings["doiMailingKey"]
+                $targetPermissionIsDoiPlus,
+                $doiMailingKey
             );
         }
 
-        return $response;
+        $existingContact = $existingContactResponse->getResult();
+
+        // CASE 2: Exists, but NO permission
+        if ($existingContact->permission === Permission::$NONE) {
+            return $this->createContactWithOptionalDoiPlus(
+                $contactsService,
+                $newContact,
+                $targetPermissionIsDoiPlus,
+                $doiMailingKey
+            );
+        }
+
+        // CASE 3: Exists with permission
+        if ($forceDoi) {
+            return $contactsService->updateContact(
+                $existingContact,
+                '',
+                'Typo3',
+                'subscriptionForm',
+                true, // force DOI
+                $doiMailingKey,
+                true
+            );
+        }
+
+        // CASE 4: Exists with permission, no DOI
+        return $contactsService->createContact(
+            $newContact,
+            SynchronizationMode::$UPDATE,
+            'Typo3',
+            'subscriptionForm'
+        );
     }
 
     public function tryUnsubscribeContact(string $email): MaileonAPIResult
@@ -193,6 +201,23 @@ class FormProcessingService
         $newContact->custom_fields = $customFields;
 
         return $newContact;
+    }
+
+    protected function createContactWithOptionalDoiPlus(
+        ContactsService $contactsService,
+        Contact $contact,
+        bool $targetPermissionIsDoiPlus,
+        string $doiMailingKey
+    ): MaileonAPIResult {
+        return $contactsService->createContact(
+            $contact,
+            SynchronizationMode::$UPDATE,
+            'Typo3',
+            'subscriptionForm',
+            true,
+            $targetPermissionIsDoiPlus,
+            $doiMailingKey
+        );
     }
 
     /**

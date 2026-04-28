@@ -4,6 +4,7 @@ plugin.tx_typo3maileonintegration {
         doiMailingKey = {$plugin.tx_typo3maileonintegration.settings.doiMailingKey}
         debug = {$plugin.tx_typo3maileonintegration.settings.debug}
         targetPermission = {$plugin.tx_typo3maileonintegration.settings.targetPermission}
+        forceDoiOnExistingContact = {$plugin.tx_typo3maileonintegration.settings.forceDoiOnExistingContact}
         privacyPolicyUrl = {$plugin.tx_typo3maileonintegration.settings.privacyPolicyUrl}
         subscribeForm {
             standardFields {

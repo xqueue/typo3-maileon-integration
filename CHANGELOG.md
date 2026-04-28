@@ -1,3 +1,9 @@
+# 3.2.2
+
+## 2026.04.28
+
+- Added TypoScript setting forceDoiOnExistingContact to trigger the DOI process even if the contact already exists.
+
 # 3.2.1
 
 ## 2025.02.11

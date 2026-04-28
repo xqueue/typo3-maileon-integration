@@ -33,6 +33,7 @@ plugin.tx_typo3maileonintegration {
 		doiMailingKey = AbCD1EFg
 		debug = 0
 		targetPermission = 5
+		forceDoiOnExistingContact = 0
 		privacyPolicyUrl =
         subscribeForm {
             standardFields {
