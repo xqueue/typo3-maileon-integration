@@ -2,29 +2,31 @@
 
 namespace XQueue\Typo3MaileonIntegration\Services;
 
-use DateTime;
-use DateTimeInterface;
 use de\xqueue\maileon\api\client\contacts\Contact;
 use de\xqueue\maileon\api\client\contacts\ContactsService;
 use de\xqueue\maileon\api\client\contacts\Permission;
 use de\xqueue\maileon\api\client\contacts\SynchronizationMode;
 use de\xqueue\maileon\api\client\MaileonAPIResult;
 use de\xqueue\maileon\api\client\utils\PingService;
-use Exception;
-use InvalidArgumentException;
+use Psr\Log\LoggerAwareTrait;
+use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Persistence\Exception\IllegalObjectTypeException;
 use TYPO3\CMS\Extbase\Persistence\Exception\InvalidQueryException;
 use TYPO3\CMS\Extbase\Persistence\Exception\UnknownObjectException;
 use TYPO3\CMS\Form\Domain\Model\FormDefinition;
 use XQueue\Typo3MaileonIntegration\Domain\Repository\XQHbSendRepository;
+use XQueue\Typo3MaileonIntegration\Exception\MaileonIntegrationException;
 use XQueue\Typo3MaileonIntegration\Settings\Settings;
 
 class FormProcessingService
 {
+    use LoggerAwareTrait;
+
     protected array $maileonConfig = [];
     protected XQHbSendRepository $xqHbSendRepository;
     protected HeartBeatService $heartBeatService;
@@ -32,10 +34,13 @@ class FormProcessingService
     /**
      * @throws ExtensionConfigurationPathDoesNotExistException
      * @throws ExtensionConfigurationExtensionNotConfiguredException
-     * @throws Exception
+     * @throws MaileonIntegrationException
      */
     public function __construct()
     {
+        $logManager = GeneralUtility::makeInstance(LogManager::class);
+        $this->setLogger($logManager->getLogger(__CLASS__));
+
         $extensionConfig = GeneralUtility::makeInstance(ExtensionConfiguration::class)
             ->get(Settings::EXTENSION_KEY);
 
@@ -47,8 +52,9 @@ class FormProcessingService
             'TIMEOUT' => 30,
         ];
 
-        if (empty($apiKey) || !$this->isMaileonApiKeyValid()) {
-            throw new Exception('Missing or invalid Maileon API key in extension configuration.');
+        if (empty($apiKey) || !$this->isMaileonApiKeyValid($apiKey)) {
+            $this->logger->error('Missing or invalid Maileon API key in extension configuration.');
+            throw new MaileonIntegrationException('Missing or invalid Maileon API key in extension configuration.');
         }
 
         $this->xqHbSendRepository = GeneralUtility::makeInstance(XQHbSendRepository::class);
@@ -56,14 +62,14 @@ class FormProcessingService
     }
 
     /**
-     * @throws Exception
+     * @throws MaileonIntegrationException
      */
     public function processSubscribeForm(array $formData, FormDefinition $formDefinition, array $finisherSettings): void
     {
         [$email, $standardFields, $customFields] = $this->extractFormValues($formData, $formDefinition);
 
         if ($email === null || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new Exception('No valid email found in form field with Maileon field name "email".');
+            throw new MaileonIntegrationException('No valid email found in form field with Maileon field name "email".');
         }
 
         $this->checkAndCreateCustomFields($customFields);
@@ -80,14 +86,14 @@ class FormProcessingService
     }
 
     /**
-     * @throws Exception
+     * @throws MaileonIntegrationException
      */
     public function processUnsubscribeForm(array $formData, FormDefinition $formDefinition): void
     {
         [$email] = $this->extractFormValues($formData, $formDefinition);
 
         if ($email === null || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            throw new Exception('No valid email found in form field with Maileon field name "email".');
+            throw new MaileonIntegrationException('No valid email found in form field with Maileon field name "email".');
         }
 
         $this->tryUnsubscribeContact($email);
@@ -97,7 +103,7 @@ class FormProcessingService
     {
         $standardFields = [];
         $customFields = [
-            "Typo3_created" => true,
+            'Typo3_created' => true,
         ];
         $email = null;
 
@@ -132,11 +138,11 @@ class FormProcessingService
     protected function validateStandardFields(array $standardFields): void
     {
         if (isset($standardFields['GENDER']) && !in_array(strtolower($standardFields['GENDER']), ['f', 'm', 'd'], true)) {
-            throw new InvalidArgumentException('Invalid value for gender. Allowed: f, m, d.');
+            throw new \InvalidArgumentException('Invalid value for gender. Allowed: f, m, d.');
         }
 
         if (isset($standardFields['LOCALE']) && !preg_match('/^[a-z]{2}$/i', $standardFields['LOCALE'])) {
-            throw new InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 'Invalid locale format. Expected a two-letter language code like "en", "de", or "hu".'
             );
         }
@@ -149,10 +155,10 @@ class FormProcessingService
                 return (bool)$value;
 
             case 'Date':
-                if ($value instanceof DateTimeInterface) {
+                if ($value instanceof \DateTimeInterface) {
                     return $value->format('Y-m-d');
                 }
-                $date = DateTime::createFromFormat('Y-m-d', $value);
+                $date = \DateTime::createFromFormat('Y-m-d', $value);
                 return $date ? $date->format('Y-m-d') : $value;
 
             case 'Number':
@@ -190,6 +196,15 @@ class FormProcessingService
             $withDoi ? $finisherSettings['doiKey'] : null
         );
 
+        if (!$response->isSuccess()) {
+            $this->logger->error('Maileon createContact failed.', [
+                'email' => $contact->email,
+                'statusCode' => $response->getStatusCode(),
+                'body' => $response->getBodyData(),
+            ]);
+            throw new MaileonIntegrationException('Failed to create/update Maileon contact for "' . $contact->email . '".');
+        }
+
         $this->handleHB();
 
         return $response;
@@ -203,9 +218,20 @@ class FormProcessingService
     public function tryUnsubscribeContact(string $email): MaileonAPIResult
     {
         $contactsService = $this->getContactsService();
+        $response = $contactsService->unsubscribeContactByEmail($email);
+
+        if (!$response->isSuccess()) {
+            $this->logger->error('Maileon unsubscribeContactByEmail failed.', [
+                'email' => $email,
+                'statusCode' => $response->getStatusCode(),
+                'body' => $response->getBodyData(),
+            ]);
+            throw new MaileonIntegrationException('Failed to unsubscribe Maileon contact "' . $email . '".');
+        }
+
         $this->handleHB();
 
-        return $contactsService->unsubscribeContactByEmail($email);
+        return $response;
     }
 
     /**
@@ -224,13 +250,24 @@ class FormProcessingService
         return new PingService($this->maileonConfig);
     }
 
-    protected function isMaileonApiKeyValid(): bool
+    protected function isMaileonApiKeyValid(string $apiKey): bool
     {
-        $pingService = $this->getPingService();
+        $cache = GeneralUtility::makeInstance(CacheManager::class)->getCache('maileon_api_validation');
+        $cacheKey = 'valid_' . sha1($apiKey);
 
-        return $pingService->pingGet()->isSuccess()
+        $cached = $cache->get($cacheKey);
+        if ($cached !== false) {
+            return (bool)$cached;
+        }
+
+        $pingService = $this->getPingService();
+        $isValid = $pingService->pingGet()->isSuccess()
             && $pingService->pingPost()->isSuccess()
             && $pingService->pingPut()->isSuccess();
+
+        $cache->set($cacheKey, $isValid);
+
+        return $isValid;
     }
 
     /**
@@ -258,14 +295,32 @@ class FormProcessingService
         $existingFields = $contactsService->getCustomFields()->getResult()->custom_fields;
 
         if (!array_key_exists('Typo3_created', $existingFields)) {
-            $contactsService->createCustomField('Typo3_created', 'boolean');
+            $this->createCustomFieldWithLogging($contactsService, 'Typo3_created', 'boolean');
         }
 
         foreach ($customFields as $fieldName => $fieldData) {
             if (!array_key_exists($fieldName, $existingFields)) {
                 $parts = explode('|', $fieldData);
-                $contactsService->createCustomField($fieldName, $parts[1] ?? 'string');
+                $this->createCustomFieldWithLogging($contactsService, $fieldName, $parts[1] ?? 'string');
             }
+        }
+    }
+
+    /**
+     * A failed custom-field creation must not block the actual subscribe/unsubscribe
+     * that follows (e.g. the field may already exist under a race), so this only logs.
+     */
+    protected function createCustomFieldWithLogging(ContactsService $contactsService, string $fieldName, string $fieldType): void
+    {
+        $response = $contactsService->createCustomField($fieldName, $fieldType);
+
+        if (!$response->isSuccess()) {
+            $this->logger->warning('Maileon createCustomField failed.', [
+                'fieldName' => $fieldName,
+                'fieldType' => $fieldType,
+                'statusCode' => $response->getStatusCode(),
+                'body' => $response->getBodyData(),
+            ]);
         }
     }
 

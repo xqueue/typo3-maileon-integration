@@ -3,11 +3,19 @@
 declare(strict_types=1);
 
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Core\Imaging\IconRegistry;
-use TYPO3\CMS\Core\Imaging\IconProvider\BitmapIconProvider;
 
 defined('TYPO3') or die('Access denied.');
+
+if (!is_array($GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['maileon_api_validation'] ?? null)) {
+    $GLOBALS['TYPO3_CONF_VARS']['SYS']['caching']['cacheConfigurations']['maileon_api_validation'] = [
+        'frontend' => \TYPO3\CMS\Core\Cache\Frontend\VariableFrontend::class,
+        'backend' => \TYPO3\CMS\Core\Cache\Backend\FileBackend::class,
+        'options' => [
+            'defaultLifetime' => 600,
+        ],
+        'groups' => ['system'],
+    ];
+}
 
 ExtensionManagementUtility::addTypoScriptSetup(
 'module.tx_form {
@@ -17,14 +25,4 @@ ExtensionManagementUtility::addTypoScriptSetup(
             }
         }
     }'
-);
-
-$iconRegistry = GeneralUtility::makeInstance(
-    IconRegistry::class
-);
-
-$iconRegistry->registerIcon(
-    'Typo3MaileonIntegration',
-    BitmapIconProvider::class,
-    ['source' => 'EXT:typo3_maileon_integration/Resources/Public/Icons/Extension.png']
 );

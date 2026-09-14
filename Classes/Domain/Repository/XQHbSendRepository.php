@@ -14,13 +14,14 @@ class XQHbSendRepository extends Repository
     {
         $this->persistenceManager = $persistenceManager;
     }
-    public function findByTask(string $task): ?XqHbSend
+    public function findByTask(string $task): ?XQHbSend
     {
-        return $this->findOneBy(['task' => $task]);
+        /** @var XQHbSend|null $record */
+        $record = $this->findOneBy(['task' => $task]);
+
+        return $record;
     }
 
-    /**
-     */
     public function hasTaskRunToday(string $task): bool
     {
         $record = $this->findByTask($task);
@@ -42,7 +43,7 @@ class XQHbSendRepository extends Repository
         $record = $this->findByTask($task);
 
         if ($record === null) {
-            $record = new XqHbSend();
+            $record = new XQHbSend();
             $record->setTask($task);
             $record->setLastExecution(time());
 
