@@ -11,7 +11,7 @@ final class Settings
     public const STANDARD_FIELDS = [
         'fullname', 'lastname', 'firstname', 'birthday', 'address', 'city',
         'country', 'gender', 'hnr', 'locale', 'nameday', 'organization',
-        'region', 'state', 'salutation', 'title', 'zip'
+        'region', 'state', 'salutation', 'title', 'zip',
     ];
     public const MAILEON_FIELD_TYPE_MAP = [
         'Text' => 'string',

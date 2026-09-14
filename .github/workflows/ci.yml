@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  cgl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+      - run: composer install --no-progress
+      - run: composer lint-cs
+      - run: composer lint-stan
+
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.1'
+            typo3: '^12.4'
+          - php: '8.2'
+            typo3: '^13.4'
+          - php: '8.3'
+            typo3: '^14.3'
+          - php: '8.4'
+            typo3: '^14.3'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '${{ matrix.php }}'
+          extensions: mbstring, curl, dom, json, libxml, simplexml
+          tools: composer:v2
+      - run: composer require --no-update typo3/cms-core:${{ matrix.typo3 }} typo3/cms-form:${{ matrix.typo3 }}
+      - run: composer install --no-progress
+      - run: composer test-unit
+      - run: composer test-functional
+        env:
+          typo3DatabaseDriver: pdo_sqlite

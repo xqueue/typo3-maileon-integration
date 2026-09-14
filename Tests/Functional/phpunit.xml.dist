@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!--
+    Functional test suite for typo3_maileon_integration.
+
+    Modelled after typo3/testing-framework's Resources/Core/Build/FunctionalTests.xml
+    boilerplate (see FunctionalTestsBootstrap.php alongside this file). Tests must
+    each extend \TYPO3\TestingFramework\Core\Functional\FunctionalTestCase — that
+    base class spins up an isolated TYPO3 instance (SQLite by default, see the
+    typo3DatabaseDriver env var) per test.
+
+    failOnDeprecation is intentionally NOT set: TYPO3 14.3 core itself emits an
+    E_USER_DEPRECATED during package bootstrap for any extension still shipping
+    ext_emconf.php without composer.json "version"/providesPackages metadata
+    (see https://docs.typo3.org/permalink/changelog:deprecation-108345-1774126701).
+    Fully silencing it means migrating off ext_emconf.php — a separate, larger
+    change — so this suite tolerates that one core-level deprecation for now.
+-->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.2/phpunit.xsd"
+         backupGlobals="true"
+         bootstrap="FunctionalTestsBootstrap.php"
+         cacheDirectory="../../.phpunit.cache"
+         colors="true"
+         failOnNotice="true"
+         failOnRisky="true"
+         failOnWarning="true"
+>
+    <testsuites>
+        <testsuite name="Functional tests">
+            <directory>.</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <ini name="display_errors" value="1"/>
+        <env name="TYPO3_CONTEXT" value="Testing"/>
+    </php>
+</phpunit>
