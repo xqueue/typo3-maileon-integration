@@ -24,5 +24,12 @@ ExtensionManagementUtility::addTypoScriptSetup(
                 1749823796 = EXT:typo3_maileon_integration/Configuration/Yaml/MaileonFormSetup.yaml
             }
         }
+    }
+    plugin.tx_form {
+        settings {
+            yamlConfigurations {
+                1749823796 = EXT:typo3_maileon_integration/Configuration/Yaml/MaileonFormSetup.yaml
+            }
+        }
     }'
 );

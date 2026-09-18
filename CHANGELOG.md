@@ -1,3 +1,12 @@
+# 4.2.0
+## 2026.09.15
+- Removed the duplicated, outdated Maileon API client copy bundled under `Resources/Private/Contrib`, which shadowed the real Composer dependency under the same namespace; relied solely on the Composer-managed package as an interim step.
+- Removed the `xqueue/maileon-api-client` Composer dependency entirely. The handful of API calls actually used (contact lookup/create, unsubscribe, custom fields, ping, account info) are now made directly via TYPO3's own HTTP client, so the extension can be installed without Composer again.
+- Cache the Maileon API key validation instead of firing 3 blocking HTTP pings on every form submission.
+- Fixed `MaileonSubscribeFinisher`/`MaileonUnsubscribeFinisher` to properly surface `FinisherException` instead of a generic `Exception`; added logging and `isSuccess()` checks throughout `FormProcessingService`.
+- Fixed a class-name casing bug in `XQHbSendRepository` and migrated the deprecated TCA `eval="int"` field to TYPO3 14's `type="number"`.
+- Added a PHPUnit unit/functional test suite, PHPStan static analysis, and a GitHub Actions CI pipeline.
+
 # 4.1.0
 ## 2025.12.19
 - Added functionality, it can be set what the final permission should be in the case of a DOI process.

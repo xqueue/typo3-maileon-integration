@@ -90,7 +90,7 @@ class FormProcessingServiceTest extends TestCase
 
         self::assertNull($email);
         self::assertSame([], $standardFields);
-        self::assertSame(['Typo3_created' => true], $customFields);
+        self::assertSame(['Typo3_created' => '1|boolean'], $customFields);
     }
 
     public function testValidateStandardFieldsAcceptsKnownGenderValues(): void
