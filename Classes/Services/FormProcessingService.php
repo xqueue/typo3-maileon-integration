@@ -2,12 +2,6 @@
 
 namespace XQueue\Typo3MaileonIntegration\Services;
 
-use de\xqueue\maileon\api\client\contacts\Contact;
-use de\xqueue\maileon\api\client\contacts\ContactsService;
-use de\xqueue\maileon\api\client\contacts\Permission;
-use de\xqueue\maileon\api\client\contacts\SynchronizationMode;
-use de\xqueue\maileon\api\client\MaileonAPIResult;
-use de\xqueue\maileon\api\client\utils\PingService;
 use Psr\Log\LoggerAwareTrait;
 use TYPO3\CMS\Core\Cache\CacheManager;
 use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
@@ -21,6 +15,10 @@ use TYPO3\CMS\Extbase\Persistence\Exception\UnknownObjectException;
 use TYPO3\CMS\Form\Domain\Model\FormDefinition;
 use XQueue\Typo3MaileonIntegration\Domain\Repository\XQHbSendRepository;
 use XQueue\Typo3MaileonIntegration\Exception\MaileonIntegrationException;
+use XQueue\Typo3MaileonIntegration\Services\Maileon\Contact;
+use XQueue\Typo3MaileonIntegration\Services\Maileon\MaileonApiClient;
+use XQueue\Typo3MaileonIntegration\Services\Maileon\MaileonApiResult;
+use XQueue\Typo3MaileonIntegration\Services\Maileon\Permission;
 use XQueue\Typo3MaileonIntegration\Settings\Settings;
 
 class FormProcessingService
@@ -103,7 +101,7 @@ class FormProcessingService
     {
         $standardFields = [];
         $customFields = [
-            'Typo3_created' => true,
+            'Typo3_created' => '1|boolean',
         ];
         $email = null;
 
@@ -174,12 +172,12 @@ class FormProcessingService
      * @throws IllegalObjectTypeException
      * @throws InvalidQueryException
      */
-    public function trySubscribeContact(Contact $contact, array $finisherSettings): MaileonAPIResult
+    public function trySubscribeContact(Contact $contact, array $finisherSettings): MaileonApiResult
     {
-        $contactsService = $this->getContactsService();
+        $contactsService = $this->getMaileonApiClient();
         $getContactByEmail = $contactsService->getContactByEmail($contact->email);
 
-        $withDoi = !$getContactByEmail->isSuccess() || Permission::$NONE === $getContactByEmail->getResult()->permission;
+        $withDoi = !$getContactByEmail->isSuccess() || Permission::NONE === $getContactByEmail->getResult()->permission;
         $needDoiPlus = false;
 
         if ($finisherSettings['finalPermission'] === 'doi+') {
@@ -188,7 +186,7 @@ class FormProcessingService
 
         $response = $contactsService->createContact(
             $contact,
-            SynchronizationMode::$UPDATE,
+            MaileonApiClient::SYNC_MODE_UPDATE,
             'Typo3',
             'subscriptionForm',
             $withDoi ? $finisherSettings['enableDoiProcess'] : null,
@@ -215,9 +213,9 @@ class FormProcessingService
      * @throws IllegalObjectTypeException
      * @throws InvalidQueryException
      */
-    public function tryUnsubscribeContact(string $email): MaileonAPIResult
+    public function tryUnsubscribeContact(string $email): MaileonApiResult
     {
-        $contactsService = $this->getContactsService();
+        $contactsService = $this->getMaileonApiClient();
         $response = $contactsService->unsubscribeContactByEmail($email);
 
         if (!$response->isSuccess()) {
@@ -235,19 +233,11 @@ class FormProcessingService
     }
 
     /**
-     * Returns contacts service from Maileon API
+     * Returns the Maileon API client
      */
-    protected function getContactsService(): ContactsService
+    protected function getMaileonApiClient(): MaileonApiClient
     {
-        return new ContactsService($this->maileonConfig);
-    }
-
-    /**
-     * Returns ping service from Maileon API
-     */
-    protected function getPingService(): PingService
-    {
-        return new PingService($this->maileonConfig);
+        return new MaileonApiClient($this->maileonConfig['API_KEY'], $this->maileonConfig['BASE_URI']);
     }
 
     protected function isMaileonApiKeyValid(string $apiKey): bool
@@ -260,7 +250,7 @@ class FormProcessingService
             return (bool)$cached;
         }
 
-        $pingService = $this->getPingService();
+        $pingService = $this->getMaileonApiClient();
         $isValid = $pingService->pingGet()->isSuccess()
             && $pingService->pingPost()->isSuccess()
             && $pingService->pingPut()->isSuccess();
@@ -291,12 +281,8 @@ class FormProcessingService
      */
     protected function checkAndCreateCustomFields(array $customFields): void
     {
-        $contactsService = $this->getContactsService();
+        $contactsService = $this->getMaileonApiClient();
         $existingFields = $contactsService->getCustomFields()->getResult()->custom_fields;
-
-        if (!array_key_exists('Typo3_created', $existingFields)) {
-            $this->createCustomFieldWithLogging($contactsService, 'Typo3_created', 'boolean');
-        }
 
         foreach ($customFields as $fieldName => $fieldData) {
             if (!array_key_exists($fieldName, $existingFields)) {
@@ -309,19 +295,30 @@ class FormProcessingService
     /**
      * A failed custom-field creation must not block the actual subscribe/unsubscribe
      * that follows (e.g. the field may already exist under a race), so this only logs.
+     * A field that already exists is not an error (the preceding existence check is
+     * a best-effort snapshot and can race with a concurrent/previous creation), so
+     * that specific response is treated as a silent no-op rather than logged.
      */
-    protected function createCustomFieldWithLogging(ContactsService $contactsService, string $fieldName, string $fieldType): void
+    protected function createCustomFieldWithLogging(MaileonApiClient $contactsService, string $fieldName, string $fieldType): void
     {
         $response = $contactsService->createCustomField($fieldName, $fieldType);
 
-        if (!$response->isSuccess()) {
-            $this->logger->warning('Maileon createCustomField failed.', [
-                'fieldName' => $fieldName,
-                'fieldType' => $fieldType,
-                'statusCode' => $response->getStatusCode(),
-                'body' => $response->getBodyData(),
-            ]);
+        if ($response->isSuccess() || $this->isFieldAlreadyExistsResponse($response)) {
+            return;
         }
+
+        $this->logger->warning('Maileon createCustomField failed.', [
+            'fieldName' => $fieldName,
+            'fieldType' => $fieldType,
+            'statusCode' => $response->getStatusCode(),
+            'body' => $response->getBodyData(),
+        ]);
+    }
+
+    protected function isFieldAlreadyExistsResponse(MaileonApiResult $response): bool
+    {
+        return $response->getStatusCode() === 400
+            && str_contains((string)$response->getBodyData(), 'already exists');
     }
 
     /**

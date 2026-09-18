@@ -2,11 +2,11 @@
 
 namespace XQueue\Typo3MaileonIntegration\Services;
 
-use de\xqueue\maileon\api\client\account\AccountService;
 use Psr\Log\LoggerAwareTrait;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use XQueue\Typo3MaileonIntegration\Services\Maileon\MaileonApiClient;
 use XQueue\Typo3MaileonIntegration\Settings\Settings;
 
 class HeartBeatService
@@ -75,11 +75,7 @@ class HeartBeatService
      */
     protected function getAccountInfo(): \stdClass
     {
-        $accountService = new AccountService([
-            'BASE_URI' => 'https://api.maileon.com/1.0',
-            'API_KEY'  => $this->apiKey,
-            'TIMEOUT'  => 30,
-        ]);
+        $accountService = new MaileonApiClient($this->apiKey);
 
         $response = $accountService->getAccountInfo();
 
