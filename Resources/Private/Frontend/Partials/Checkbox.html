@@ -27,12 +27,12 @@
                         <span>
                             <xqueue:linkLabel
                                 url="{f:uri.page(pageUid: element.properties.link)}"
-                                label="{formvh:translateElementProperty(element: element, property: 'label')}" />
+                                label="{formvh:translateElementProperty(element: element, property: 'label') -> f:sanitize.html() -> f:transform.html() -> f:format.stripTags()}" />
                             <f:if condition="{element.required}"><f:render partial="Field/Required"/></f:if>
                         </span>
                     </f:then>
                     <f:else>
-                        <span class="{element.properties.labelTextClassAttribute}">{formvh:translateElementProperty(element: element, property: 'label')}<f:if condition="{element.required}"><f:render partial="Field/Required"/></f:if></span>
+                        <span class="{element.properties.labelTextClassAttribute}">{formvh:translateElementProperty(element: element, property: 'label') -> f:sanitize.html() -> f:transform.html() -> f:format.stripTags(allowedTags: '<a><br><i><strong>')}<f:if condition="{element.required}"><f:render partial="Field/Required"/></f:if></span>
                     </f:else>
                 </f:if>
             </label>

@@ -13,14 +13,15 @@ return [
             'config' => [
                 'type' => 'input',
                 'size' => 30,
-                'eval' => 'trim,required',
+                'required' => true,
+                'eval' => 'trim',
             ],
         ],
         'last_execution' => [
             'label' => 'Last Execution',
             'config' => [
-                'type' => 'input',
-                'eval' => 'int',
+                'type' => 'number',
+                'format' => 'integer',
             ],
         ],
     ],

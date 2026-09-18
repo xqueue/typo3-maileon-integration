@@ -2,15 +2,15 @@
 
 namespace XQueue\Typo3MaileonIntegration\Domain\Finishers;
 
-use Exception;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Form\Domain\Finishers\AbstractFinisher;
+use TYPO3\CMS\Form\Domain\Finishers\Exception\FinisherException;
 use XQueue\Typo3MaileonIntegration\Services\FormProcessingService;
 
 class MaileonSubscribeFinisher extends AbstractFinisher
 {
     /**
-     * @throws Exception
+     * @throws FinisherException
      */
     protected function executeInternal()
     {
@@ -23,8 +23,12 @@ class MaileonSubscribeFinisher extends AbstractFinisher
         try {
             $contactService = GeneralUtility::makeInstance(FormProcessingService::class);
             $contactService->processSubscribeForm($formValues, $formDefinition, $finisherSettings);
-        } catch (Exception $e) {
-            throw new Exception('Maileon subscription failed: ' . $e->getMessage(), 0, $e);
+        } catch (\Throwable $e) {
+            $this->logger->error('Maileon subscription failed.', [
+                'email' => $formValues['email'] ?? null,
+                'exception' => $e,
+            ]);
+            throw new FinisherException('Maileon subscription failed: ' . $e->getMessage(), 0, $e);
         }
     }
 

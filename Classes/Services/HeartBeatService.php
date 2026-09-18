@@ -2,13 +2,11 @@
 
 namespace XQueue\Typo3MaileonIntegration\Services;
 
-use de\xqueue\maileon\api\client\account\AccountService;
-use Exception;
 use Psr\Log\LoggerAwareTrait;
-use stdClass;
 use TYPO3\CMS\Core\Http\RequestFactory;
 use TYPO3\CMS\Core\Log\LogManager;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use XQueue\Typo3MaileonIntegration\Services\Maileon\MaileonApiClient;
 use XQueue\Typo3MaileonIntegration\Settings\Settings;
 
 class HeartBeatService
@@ -20,7 +18,7 @@ class HeartBeatService
     public function __construct(string $apiKey)
     {
         if (empty($apiKey)) {
-            throw new Exception('API key is missing or invalid');
+            throw new \Exception('API key is missing or invalid');
         }
 
         $this->apiKey = $apiKey;
@@ -38,12 +36,12 @@ class HeartBeatService
             }
 
             $uri = Settings::XSIC_URL . '?' . http_build_query([
-                    'pluginID'   => Settings::XSIC_ID,
-                    'checkSum'   => Settings::XSIC_CHECKSUM,
-                    'accountID'  => $accountParams['accountID'],
-                    'clientHash' => $accountParams['clientHash'],
-                    'event'      => 'heartbeat',
-                ]);
+                'pluginID'   => Settings::XSIC_ID,
+                'checkSum'   => Settings::XSIC_CHECKSUM,
+                'accountID'  => $accountParams['accountID'],
+                'clientHash' => $accountParams['clientHash'],
+                'event'      => 'heartbeat',
+            ]);
 
             $requestFactory = GeneralUtility::makeInstance(RequestFactory::class);
             $response = $requestFactory->request($uri, 'GET');
@@ -54,13 +52,13 @@ class HeartBeatService
                     'response' => $response->getBody()->getContents(),
                 ]);
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->error('Heartbeat process failed.', ['exception' => $e]);
         }
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     protected function getAccountParameters(): array
     {
@@ -73,34 +71,30 @@ class HeartBeatService
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
-    protected function getAccountInfo(): stdClass
+    protected function getAccountInfo(): \stdClass
     {
-        $accountService = new AccountService([
-            'BASE_URI' => 'https://api.maileon.com/1.0',
-            'API_KEY'  => $this->apiKey,
-            'TIMEOUT'  => 30,
-        ]);
+        $accountService = new MaileonApiClient($this->apiKey);
 
         $response = $accountService->getAccountInfo();
 
         if (! $response->isSuccess()) {
-            throw new Exception('Failed to retrieve Maileon account info.');
+            throw new \Exception('Failed to retrieve Maileon account info.');
         }
 
         return $response->getResult();
     }
 
     /**
-     * @throws Exception
+     * @throws \Exception
      */
     protected function createClientHash(string $accountName): string
     {
         $accountName = trim($accountName);
 
         if ($accountName === '') {
-            throw new Exception('Cannot create client hash: account name is empty.');
+            throw new \Exception('Cannot create client hash: account name is empty.');
         }
 
         return substr($accountName, 0, 1) . substr($accountName, -1, 1);

@@ -18,12 +18,12 @@ $EM_CONF[$_EXTKEY] = [
     'author_email' => 'integrations@xqueue.com',
     'author_company' => 'XQueue GmbH',
     'state' => 'stable',
-    'version' => '4.1.0',
+    'version' => '4.2.0',
     'clearCacheOnLoad' => true,
     'constraints' => [
         'depends' => [
-            'typo3' => '12.4.0-13.4.99',
-            'form' => '12.4.0-13.4.99',
+            'typo3' => '12.4.0-14.99.99',
+            'form' => '12.4.0-14.99.99',
         ],
         'conflicts' => [],
         'suggests' => [],
@@ -31,11 +31,9 @@ $EM_CONF[$_EXTKEY] = [
     'autoload' => [
         'classmap' => [
            'Classes',
-           'Resources/Private/Contrib/xqueue/maileon-api-client/src'
         ],
         'psr-4' => [
             'XQueue\\Typo3MaileonIntegration\\' => 'Classes',
-            'de\\xqueue\\maileon\\api\\client\\' => 'Resources/Private/Contrib/xqueue/maileon-api-client/src'
          ]
      ],
 ];

@@ -30,12 +30,12 @@ class LinkLabelViewHelper extends AbstractViewHelper
             return '<a href="' . htmlspecialchars($url) . '" target="_blank" rel="noopener noreferrer">' . htmlspecialchars($label) . '</a>';
         }
 
-        $start = trim(substr($label, 0, $indexStart));
+        $start = substr($label, 0, $indexStart);
         $linkText = trim(substr($label, $indexStart + 1, $indexEnd - $indexStart - 1));
-        $end = trim(substr($label, $indexEnd + 1));
+        $end = substr($label, $indexEnd + 1);
 
-        return htmlspecialchars($start) .
-            ' <a href="' . htmlspecialchars($url) . '" target="_blank" rel="noopener noreferrer">' . htmlspecialchars($linkText) . '</a>' .
-            (strlen($end) ? ' ' . htmlspecialchars($end) : '');
+        return htmlspecialchars($start)
+            . '<a href="' . htmlspecialchars($url) . '" target="_blank" rel="noopener noreferrer">' . htmlspecialchars($linkText) . '</a>'
+            . htmlspecialchars($end);
     }
 }
