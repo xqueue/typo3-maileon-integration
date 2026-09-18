@@ -20,7 +20,7 @@ class LinkLabelViewHelperTest extends TestCase
         $result = $this->render('/privacy', 'I accept the [Privacy Policy].');
 
         self::assertSame(
-            'I accept the <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a> .',
+            'I accept the <a href="/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>.',
             $result
         );
     }

@@ -38,6 +38,10 @@ jobs:
           php-version: '${{ matrix.php }}'
           extensions: mbstring, curl, dom, json, libxml, simplexml
           tools: composer:v2
+      # saschaegerer/phpstan-typo3 ^3.1 (require-dev) only supports typo3/cms-core ^14.0,
+      # so it conflicts with the ^12.4/^13.4 legs below; static analysis is covered by
+      # the cgl job on a fixed TYPO3 version, so it's not needed here.
+      - run: composer remove --dev --no-update saschaegerer/phpstan-typo3
       - run: composer require --no-update typo3/cms-core:${{ matrix.typo3 }} typo3/cms-form:${{ matrix.typo3 }}
       - run: composer install --no-progress
       - run: composer test-unit
